@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 6: Phases 1–2 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 7: Phases 1–3 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -531,6 +531,24 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Ambiguous lines are never auto-committed.
 3. Importing the 35-line family fixture matches ≥90% automatically, with no wrong matches.
 4. Playwright: create list → add 5 items via search → import pasted text → reorder → check off → reload persists. Works at 360px and in dark mode.
+
+**Delivered (2026-11-16): `pnpm verify` green.** Notes and deviations:
+- **Endpoints, as in §5:**
+  - Lists: CRUD, items, reorder, duplicate, save as template.
+  - `GET /templates`, plus a new `GET /templates/:id` for previews.
+  - `GET /products` (typeahead search), `GET /products/:id`, `GET /categories`.
+  - Import preview and commit.
+- **Import is JSON, not multipart.** The body is `{format: 'text'|'csv', content}`, with the CSV read in the browser. Limits are unchanged: a body over 1 MB → 413, over 500 lines → 422, an unclosed CSV quote → 422 with its line number.
+- **Matching** (shared by free-text items and import):
+  - An exact name or alias match wins.
+  - Otherwise the best pg_trgm match must score ≥ 0.6 and beat the runner-up by ≥ 0.15.
+  - Anything below that is `ambiguous` (candidates scoring ≥ 0.3) or `unmatched`. Commit never auto-matches, so ambiguous lines stay free text unless the user picks a product.
+  - Family-week text import: **35/35 matched, 0 wrong**.
+- **Units are fitted to the product:** a bare "oz" on a liquid becomes fl oz. Units that don't fit are dropped on import, and rejected with 422 when set directly.
+- **Reordering:** the API takes the full order. The UI moves items within their aisle group, because moving across groups would show no visible change.
+- **Ids:** a non-UUID path id returns 404. Another user's list or item also returns 404, never 403, for every list, item, template and import route (tested).
+- **Seed:** 5 system templates. The demo user also gets a "Family week" list (the 35-item fixture), ready for Phase 4.
+- **Phase 2 bug fixed:** dark-mode primary buttons failed WCAG contrast (white on `brand-600`, 3.3:1). They now use `brand-700` (about 5:1). The e2e accessibility check found it once it covered a dark-mode form.
 
 ### Phase 4: Price comparison
 - The comparison service in `core`: eligibility, coverCost, totals, cheapest, savingsPct, approximate/missing flags.

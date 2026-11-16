@@ -107,5 +107,6 @@ export function renderAt(path: string) {
 
 export const signedIn = (user: object = USER) => ({
   'GET /auth/me': { status: 200, body: { user } },
+  'GET /lists': { status: 200, body: { lists: [], nextCursor: null } },
   'GET /health/ready': { status: 200, body: READY },
 });

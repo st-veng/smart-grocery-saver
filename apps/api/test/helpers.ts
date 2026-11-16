@@ -1,5 +1,6 @@
+import request from 'supertest';
 import { createTestDatabase } from '@sgs/db/testing';
-import { MockPriceProvider, syncStores } from '@sgs/pricing';
+import { MockPriceProvider, seedCatalog, seedSystemTemplates, syncStores } from '@sgs/pricing';
 import { pino, type Logger } from 'pino';
 import { createApp, type AppDeps } from '../src/app.js';
 import type { RateLimits } from '../src/auth/middleware.js';
@@ -35,6 +36,32 @@ export type AppOverrides = Omit<Partial<AppDeps>, 'clock'> & {
   clock?: TestClock | (() => Date);
   logger?: Logger;
 };
+
+/** Stores + catalog (categories, products, aliases) + system templates — enough for lists and import. */
+export async function setupCatalogDb(suffix: string): Promise<TestDb> {
+  const db = await setupDb(suffix);
+  await seedCatalog(db.db);
+  await seedSystemTemplates(db.db, new Date('2026-11-01T12:00:00Z'));
+  return db;
+}
+
+/** Register a user and return a Cookie header for it. */
+export async function signUp(
+  app: ReturnType<typeof buildApp>,
+  label = 'u',
+): Promise<{ cookie: string; userId: string }> {
+  const email = `${label}-${String(Date.now())}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+  const res = await request(app)
+    .post('/api/v1/auth/register')
+    .set(CSRF)
+    .send({ email, password: 'correct horse battery', displayName: label });
+  if (res.status !== 201) throw new Error(`signUp failed: ${String(res.status)}`);
+  const c = cookieValues(res.headers['set-cookie']);
+  return {
+    cookie: `sgs_at=${c.sgs_at ?? ''}`,
+    userId: (res.body as { user: { id: string } }).user.id,
+  };
+}
 
 export function buildApp(db: TestDb, overrides: AppOverrides = {}) {
   const { clock: given, ...rest } = overrides;

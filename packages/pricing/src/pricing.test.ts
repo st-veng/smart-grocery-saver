@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FAMILY_WEEK } from './catalog/family-fixture.js';
 import { PRODUCTS } from './catalog/products.js';
 import { CHAINS, MAINSTREAM } from './catalog/stores.js';
+import { SYSTEM_TEMPLATES } from './catalog/templates.js';
 import { applyObservation, observationsToPeriods, rangeLiteral } from './ingest/periods.js';
 import { matchText, normalizeItem } from './ingest/normalize.js';
 import {
@@ -53,6 +54,15 @@ describe('catalog', () => {
     expect(FAMILY_WEEK).toHaveLength(35);
     const slugs = new Set(PRODUCTS.map((p) => p.slug));
     for (const line of FAMILY_WEEK) expect(slugs.has(line.product), line.product).toBe(true);
+  });
+
+  it('has ≥5 system templates whose items are all known products', () => {
+    expect(SYSTEM_TEMPLATES.length).toBeGreaterThanOrEqual(5);
+    const slugs = new Set(PRODUCTS.map((p) => p.slug));
+    for (const t of SYSTEM_TEMPLATES) {
+      expect(t.items.length, t.name).toBeGreaterThanOrEqual(8);
+      for (const i of t.items) expect(slugs.has(i.product), `${t.name}: ${i.product}`).toBe(true);
+    }
   });
 
   it('has exactly 10 chains with the decided membership/loyalty setup', () => {

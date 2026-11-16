@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import { DemoBanner } from './DemoBanner';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -19,6 +19,8 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(' ');
 
 export function AppShell() {
+  const { pathname } = useLocation();
+  const listsArea = /^\/(lists|templates|import)(\/|$)/.test(pathname);
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -47,7 +49,14 @@ export function AppShell() {
           <ul className="flex md:flex-col md:gap-1">
             {NAV.map((n) => (
               <li key={n.to} className="flex flex-1 md:flex-none">
-                <NavLink to={n.to} end={n.end} className={linkClass}>
+                <NavLink
+                  to={n.to}
+                  end={n.end}
+                  className={({ isActive }) =>
+                    linkClass({ isActive: isActive || (n.to === '/' && listsArea) })
+                  }
+                  aria-current={n.to === '/' && listsArea ? 'page' : undefined}
+                >
                   <span aria-hidden="true" className="text-lg leading-none md:text-base">
                     {n.icon}
                   </span>

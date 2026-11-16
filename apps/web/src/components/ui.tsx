@@ -4,7 +4,7 @@ export const card =
   'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
 export const primaryButton =
-  'inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-700 px-4 font-semibold text-white hover:bg-brand-800 disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-700';
+  'inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-700 px-4 font-semibold text-white hover:bg-brand-800 disabled:opacity-60 dark:bg-brand-700 dark:hover:bg-brand-800';
 
 export const secondaryButton =
   'inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800';

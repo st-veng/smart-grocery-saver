@@ -14,3 +14,6 @@ export { DEMO_EMAIL, DEFAULT_DEMO_PASSWORD } from './seed/demo-user.js';
 export { FAMILY_WEEK } from './catalog/family-fixture.js';
 export { PRODUCTS } from './catalog/products.js';
 export { CHAINS } from './catalog/stores.js';
+export { SYSTEM_TEMPLATES } from './catalog/templates.js';
+export { seedCatalog } from './seed/catalog-seed.js';
+export { seedSystemTemplates } from './seed/lists-seed.js';

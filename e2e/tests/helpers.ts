@@ -17,7 +17,12 @@ export async function expectNoSeriousA11yViolations(page: Page): Promise<void> {
   const serious = results.violations.filter(
     (v) => v.impact === 'serious' || v.impact === 'critical',
   );
-  expect(serious.map((v) => `${v.id}: ${v.help} (${String(v.nodes.length)})`)).toEqual([]);
+  expect(
+    serious.map(
+      (v) =>
+        `${v.id}: ${v.help} → ${v.nodes.map((n) => `${n.target.join(' ')} ${n.failureSummary ?? ''}`).join(' | ')}`,
+    ),
+  ).toEqual([]);
 }
 
 export function uniqueEmail(prefix: string): string {

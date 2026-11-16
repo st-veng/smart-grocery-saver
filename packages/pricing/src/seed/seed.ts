@@ -5,6 +5,7 @@ import { fullSync, type SyncSummary } from '../ingest/ingest.js';
 import { MockPriceProvider } from '../mock/mock-provider.js';
 import { seedCatalog } from './catalog-seed.js';
 import { DEFAULT_DEMO_PASSWORD, seedDemoUser } from './demo-user.js';
+import { seedDemoList, seedSystemTemplates } from './lists-seed.js';
 
 export const HISTORY_DAYS = 365;
 export const DEFAULT_SEED = '20261116';
@@ -71,13 +72,13 @@ export async function seedDatabase(opts: SeedOptions): Promise<SeedResult> {
       days: HISTORY_DAYS,
       log,
     });
+    const seededAt = new Date(`${anchorDate}T12:00:00Z`);
+    const templates = await seedSystemTemplates(db, seededAt);
+    log(`system templates: ${String(templates)}`);
     if (opts.demoUser ?? true) {
-      const demo = await seedDemoUser(
-        db,
-        opts.demoPassword ?? DEFAULT_DEMO_PASSWORD,
-        new Date(`${anchorDate}T12:00:00Z`),
-      );
-      log(`demo user: ${demo.email}`);
+      const demo = await seedDemoUser(db, opts.demoPassword ?? DEFAULT_DEMO_PASSWORD, seededAt);
+      await seedDemoList(db, demo.id, seededAt);
+      log(`demo user: ${demo.email} (with a "Family week" list)`);
     }
     return { ...sync, ...catalog, anchorDate, seed, ms: Date.now() - started };
   } finally {

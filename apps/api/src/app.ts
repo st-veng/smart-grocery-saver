@@ -12,6 +12,7 @@ import type { TokenService } from './auth/tokens.js';
 import { errorHandler, notFoundHandler } from './errors.js';
 import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
+import { catalogRouter, listsRouter } from './routes/lists.js';
 import { meRouter, storesRouter } from './routes/me.js';
 
 /** Minimal query interface so tests can inject a failing database. */
@@ -80,6 +81,8 @@ export function createApp(deps: AppDeps): Express {
   app.use('/api/v1/auth', authRouter({ ...deps, logger }));
   app.use('/api/v1/me', meRouter(deps));
   app.use('/api/v1/stores', storesRouter(deps));
+  app.use('/api/v1', catalogRouter(deps));
+  app.use('/api/v1', listsRouter(deps));
 
   app.use(notFoundHandler);
   app.use(errorHandler(logger));
