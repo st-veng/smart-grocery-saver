@@ -82,7 +82,7 @@ CREATE TABLE users (
   home_zip            char(5),
   home_lat            numeric(9,6),
   home_lng            numeric(9,6),
-  vehicle_mpg         numeric(4,1) NOT NULL DEFAULT 25.0 CHECK (vehicle_mpg > 0),
+  vehicle_mpg         numeric(4,1) NOT NULL DEFAULT 25 CHECK (vehicle_mpg > 0),
   fuel_cents_per_gal  integer CHECK (fuel_cents_per_gal > 0),  -- NULL → metro default
   baseline_store_id   smallint REFERENCES stores(id),          -- "where I usually shop"; savings baseline
   theme               theme_pref NOT NULL DEFAULT 'system',
@@ -243,7 +243,7 @@ CREATE TABLE price_points (
   observed_at           timestamptz NOT NULL DEFAULT now(),
   CHECK (sale_price_cents IS NULL OR sale_price_cents < regular_price_cents),
   CHECK ((sale_price_cents IS NULL) = (promo_type = 'none')),
-  EXCLUDE USING gist (
+  CONSTRAINT price_points_no_overlap EXCLUDE USING gist (
     store_item_id WITH =,
     metro WITH =,
     (COALESCE(store_location_id, 0)) WITH =,

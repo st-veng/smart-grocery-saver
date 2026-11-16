@@ -15,13 +15,20 @@ Read `SPEC.md` before any work. It is the source of truth for scope, data model,
 ## Stack
 | Layer | Choice |
 |---|---|
-| Runtime | Node 22 LTS, pnpm 10 workspaces (`packageManager` pinned), TypeScript 5 `strict`, ESM everywhere |
-| Web | React 18, Vite, Tailwind CSS (class-based dark mode), React Router, TanStack Query, react-hook-form + Zod, Recharts |
+| Runtime | Node 22 LTS, pnpm 10 workspaces (`packageManager` pinned), TypeScript 5.9 `strict`, ESM everywhere |
+| Web | React 19, Vite 8, Tailwind CSS 4 (class-based dark mode via `@custom-variant`), React Router, TanStack Query, react-hook-form + Zod, Recharts |
 | API | Express 5, Zod validation, pino logging (redaction on), helmet, express-rate-limit, node-cron |
 | DB | PostgreSQL 17 (docker-compose), **Drizzle ORM** + drizzle-kit migrations (custom SQL for functions/trigger/exclusion) |
 | Auth | argon2id (`@node-rs/argon2`), JWT access cookie + rotating opaque refresh cookie, Google OIDC (PKCE) with mock mode |
 | Export | `pdfkit` (PDF), hand-rolled RFC 4180 CSV writer with formula-injection escaping |
-| Tests | Vitest (unit + API), Supertest (API), fast-check (property), Playwright + @axe-core/playwright (e2e) |
+| Tests | Vitest 5 (unit + API + DB), Supertest (API), fast-check (property), Playwright 1.63 + @axe-core/playwright (e2e) |
+
+**Pinned on purpose:**
+- TypeScript 5.9: typescript-eslint doesn't support TS 7 yet.
+- ESLint 9: eslint-plugin-jsx-a11y doesn't support ESLint 10 yet.
+- `@playwright/test` 1.63.0: matches the preinstalled browsers. CI runs `playwright install chromium` and isn't affected by this pin.
+
+Re-check these when upgrading.
 
 ## Folder structure
 ```
@@ -35,8 +42,6 @@ Read `SPEC.md` before any work. It is the source of truth for scope, data model,
 │   │   │   ├── routes/      thin: parse (shared schema) → service → respond
 │   │   │   ├── services/    business logic; no Express types
 │   │   │   ├── repositories/ Drizzle queries only
-│   │   │   ├── providers/   PriceProvider interface, MockPriceProvider
-│   │   │   ├── ingestion/   normalize → match → upsert → price periods → alerts
 │   │   │   ├── auth/        tokens, google (real + mock), middleware
 │   │   │   └── jobs/
 │   │   └── test/            *.api.test.ts (Supertest), helpers/
@@ -45,32 +50,34 @@ Read `SPEC.md` before any work. It is the source of truth for scope, data model,
 ├── packages/
 │   ├── core/                PURE domain logic, no I/O: units, parseSize, money, comparison, optimizer, geo
 │   ├── shared/              Zod schemas + inferred types = API contract (used by api AND web)
-│   └── db/                  drizzle schema, migrations/, seed/ (catalog data + generator), test-db helpers
+│   ├── db/                  drizzle schema, migrations/, migrate/reset CLIs, test-database helpers (`@sgs/db/testing`)
+│   └── pricing/             PriceProvider contract, MockPriceProvider, catalog/ (products, stores, fixtures),
+│                            ingest/ (normalize → match → upsert → price periods), seed/
 ├── e2e/                     Playwright specs + fixtures
 ├── docs/schema.sql          reference DDL (SPEC Appendix A)
 ├── scripts/verify.sh        the gate: typecheck → lint → test → e2e
 ├── docker-compose.yml
 └── .github/workflows/ci.yml
 ```
-Dependency direction: `web → shared, core` · `api → shared, core, db` · `db → core` · `core → (nothing)`.
+Dependency direction: `web → shared` · `api → shared, core, db, pricing` · `pricing → db, core` · `db → core` · `core → (nothing)`.
 `core` must never import from `db`, `api`, Express, React, or Node I/O modules.
 
 ## Commands (run from repo root)
 | Command | Does |
 |---|---|
 | `pnpm i` | install (frozen lockfile in CI) |
-| `pnpm db:up` / `pnpm db:down` | start/stop Postgres (host port **5433**) |
+| `pnpm db:up` / `pnpm db:down` | start/stop Postgres on host port **5433**: docker compose, or a local PostgreSQL install when no Docker daemon is available |
 | `pnpm db:generate` | generate a migration from Drizzle schema changes |
 | `pnpm db:migrate` | apply migrations to `DATABASE_URL` |
-| `pnpm db:seed` | seed via MockPriceProvider (`SEED`, `SEED_ANCHOR_DATE` respected) |
+| `pnpm db:seed` | wipe app data and seed via MockPriceProvider + the real ingestion pipeline (`SEED`, `SEED_ANCHOR_DATE` respected; ~17 s) |
 | `pnpm db:reset` | drop + migrate + seed dev DB |
 | `pnpm dev` | api (:4000, tsx watch) + web (:5173, Vite proxy `/api` → :4000) |
 | `pnpm sim:advance --days N` | replay mock provider forward N days (alerts demo) |
-| `pnpm typecheck` | `tsc -b` across workspace |
+| `pnpm typecheck` | `tsc -p` in every package (`pnpm -r typecheck`) |
 | `pnpm lint` / `pnpm lint:fix` | ESLint + Prettier check |
-| `pnpm test` | unit + API tests (Vitest); API tests use `sgs_test` DB |
+| `pnpm test` | unit + API + DB tests (Vitest) in every package; DB-backed suites create their own `sgs_test_<suite>` database |
 | `pnpm test:unit` / `pnpm test:api` | subsets |
-| `pnpm test:e2e` | Playwright (builds web, starts api against freshly seeded `sgs_e2e`) — pass `--trace off` locally unless debugging |
+| `pnpm test:e2e` | Playwright: reseeds `sgs_e2e`, starts api on :4100 and a production web build on :4173 (proxying `/api`), runs mobile + desktop projects with traces off |
 | `pnpm verify` | **the phase gate**: typecheck → lint → test → test:e2e; non-zero on any failure |
 
 Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm --filter @sgs/api test test/auth.api.test.ts`.
@@ -108,7 +115,7 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 - Every data view has loading, empty and error states.
 
 **Tests**
-- Unit tests are colocated as `*.test.ts` and are pure (no DB). API tests live in `apps/api/test/*.api.test.ts` and run against the real Postgres `sgs_test` DB. Each file runs in a transaction or truncates its tables, so there is no shared mutable state.
+- Unit tests are colocated as `*.test.ts` and are pure (no DB). DB tests are `*.db.test.ts` (or live in `packages/db`). API tests live in `apps/api/test/*.api.test.ts`. DB-backed suites get their own real Postgres database via `createTestDatabase(suffix)` from `@sgs/db/testing`. Each file runs in a transaction or truncates its tables, so there is no shared mutable state.
 - DB-backed tests use a fixed `SEED`, `SEED_ANCHOR_DATE=2026-11-01` and an injected clock.
 - e2e covers critical flows only (see SPEC §7). It uses role- and label-based selectors (`getByRole`) and no CSS selectors. Each spec runs axe and asserts zero serious or critical violations.
 
@@ -116,7 +123,7 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRET`, `COOKIE_SECURE`, `WEB_ORIGIN`, `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `AUTH_GOOGLE_MODE=mock|real`, `PRICE_PROVIDER=mock`, `SEED`,
 `SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`, `PRESELECT_RADIUS_MILES=7`,
-`DEFAULT_ORIGIN=33.1507,-96.8236` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only).
+`DEFAULT_ORIGIN=33.1500,-96.8065` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only).
 Missing Google credentials ⇒ mock mode automatically; the API refuses to start with `AUTH_GOOGLE_MODE=mock` when
 `NODE_ENV=production`.
 

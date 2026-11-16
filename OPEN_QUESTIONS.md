@@ -42,4 +42,4 @@ if you don't answer. Decided questions are struck through and kept for the recor
 | A-14 | English only, USD only, US customary units with metric parsing supported. |
 | A-15 | Postgres 17 runs in docker-compose. The CI service also uses 17. The DDL was validated on 16, and nothing in it is 17-specific. |
 | A-16 | Trader Joe's and Sprouts carry a narrower assortment, so they will often be "incomplete" for a full list. They are never shown as cheapest for the whole list when items are missing, but they can win individual items and appear in multi-store plans. |
-| A-17 | "Main St & Preston Rd, Frisco" means the intersection point (≈ 33.1507, −96.8236). It is the default origin, the demo user's home and the e2e fixture home. It is **not** a fixed centre for every user: each user's 7-mile radius is measured from their own home. |
+| A-17 | "Main St & Preston Rd, Frisco" means the intersection point (≈ 33.1500, −96.8065, confirmed in Phase 1 from nearby address geocodes). It is the default origin, the demo user's home and the e2e fixture home. It is **not** a fixed centre for every user: each user's 7-mile radius is measured from their own home. |

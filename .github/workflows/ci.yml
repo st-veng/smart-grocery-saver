@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: sgs
+          POSTGRES_PASSWORD: sgs
+          POSTGRES_DB: sgs_dev
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U sgs -d sgs_dev"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://sgs:sgs@localhost:5433/sgs_dev
+      DATABASE_URL_TEST: postgres://sgs:sgs@localhost:5433/sgs_test
+      DATABASE_URL_E2E: postgres://sgs:sgs@localhost:5433/sgs_e2e
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create e2e database
+        run: PGPASSWORD=sgs psql -h localhost -p 5433 -U sgs -d sgs_dev -c 'CREATE DATABASE sgs_e2e'
+      - name: Install Playwright Chromium
+        run: pnpm --filter @sgs/e2e exec playwright install --with-deps chromium
+      - name: Verify (typecheck, lint, test, e2e)
+        run: pnpm verify
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 7

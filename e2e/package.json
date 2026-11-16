@@ -1,0 +1,17 @@
+{
+  "name": "@sgs/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "playwright test --trace off"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.63.0",
+    "@sgs/db": "workspace:*",
+    "@sgs/pricing": "workspace:*",
+    "tsx": "^4.23.15"
+  }
+}

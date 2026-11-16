@@ -1,0 +1,40 @@
+{
+  "name": "smart-grocery-saver",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"pnpm --filter @sgs/api dev\" \"pnpm --filter @sgs/web dev\"",
+    "db:up": "bash scripts/db-up.sh",
+    "db:down": "bash scripts/db-down.sh",
+    "db:generate": "pnpm --filter @sgs/db generate",
+    "db:migrate": "pnpm --filter @sgs/db migrate",
+    "db:seed": "pnpm --filter @sgs/pricing seed",
+    "db:reset": "pnpm --filter @sgs/db reset && pnpm db:seed",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "eslint . --max-warnings=0 && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "format": "prettier --write .",
+    "test": "pnpm -r --filter=!@sgs/e2e test",
+    "test:unit": "pnpm -r --filter=!@sgs/e2e test:unit",
+    "test:api": "pnpm --filter @sgs/api test",
+    "test:e2e": "pnpm --filter @sgs/e2e test",
+    "verify": "bash scripts/verify.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.18.0",
+    "concurrently": "^10.0.7",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}

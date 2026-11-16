@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: sgs-postgres
+    environment:
+      POSTGRES_USER: sgs
+      POSTGRES_PASSWORD: sgs
+      POSTGRES_DB: sgs_dev
+      TZ: America/Chicago
+    ports:
+      - '5433:5432'
+    volumes:
+      - sgs-pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sgs -d sgs_dev']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  sgs-pgdata:

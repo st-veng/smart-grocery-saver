@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 4: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing incl. Kroger; 7-mile store pre-selection; Q-1/2/3/9 decided) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 5: Phase 1 delivered; see §7 Phase 1 "Delivered" for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -130,7 +130,7 @@ Prices are stored as **periods** (`daterange [from, to)`), not daily rows:
 - All price dates are calendar dates in `America/Chicago` **[A-7]**.
 - Prices are metro-wide in MVP (`store_location_id = NULL`). The column exists so per-store pricing needs no migration **[A-4]**.
 
-### 2.6 PriceProvider contract (`apps/api/src/providers`)
+### 2.6 PriceProvider contract (`packages/pricing/src/provider.ts`)
 ```ts
 export interface PriceProvider {
   readonly id: string;                                   // 'mock'
@@ -194,22 +194,23 @@ Other seeded behaviour:
 ### 2.7 Store pre-selection (onboarding)
 - **Rule:** a chain is pre-selected when its nearest location is **within 7.0 miles straight-line (haversine, no circuity factor)** of the user's home point. Users can tick or untick any chain afterwards.
 - **Home point:** the centroid of the user's ZIP **[A-8]**.
-- **Reference point:** the **Main St & Preston Rd intersection in Frisco, TX** (≈ 33.1507, −96.8236; coordinates to be confirmed against a map in Phase 1). It is used for three things:
+- **Reference point:** the **Main St & Preston Rd intersection in Frisco, TX** (≈ 33.1500, −96.8065; confirmed in Phase 1 from geocodes of nearby Preston Rd addresses, e.g. 8555 Preston Rd ≈ 33.1473, −96.8075). It is used for three things:
   - the default origin before the user enters a ZIP;
   - the seeded demo user's home;
   - the e2e fixture user's home.
 - **Fallback:** if no chain is within 7 miles, the 3 nearest chains are pre-selected and the UI says "No stores within 7 mi, showing the nearest".
-- **Config:** `PRESELECT_RADIUS_MILES=7` and `DEFAULT_ORIGIN=33.1507,-96.8236` in config. Constants live in `core/geo`.
+- **Config:** `PRESELECT_RADIUS_MILES=7` and `DEFAULT_ORIGIN=33.1500,-96.8065` in config. Constants live in `core/geo`.
 - **Seed constraint:** mock locations put most chains within 7 miles of the reference point, but **at least one chain's nearest location lies beyond 7 miles**, so the rule is visible and testable.
 
 ## 3. Architecture
 
 ```
-apps/web     React 18 + Vite + TS + Tailwind + React Router + TanStack Query + Recharts
-apps/api     Express 5 + TS, layered: routes → services → repositories (Drizzle) ; providers/ ; jobs/
-packages/core     pure TS domain: units, size parser, matching scoring, comparison, optimizer, money
+apps/web          React 19 + Vite 8 + TS + Tailwind 4 + React Router + TanStack Query + Recharts
+apps/api          Express 5 + TS, layered: routes → services → repositories (Drizzle) ; jobs/
+packages/core     pure TS domain: units, size parser, money, cover cost, geo, dates, seeded RNG
 packages/shared   Zod schemas = API contract (request/response types for web & api)
-packages/db       Drizzle schema, SQL migrations, seed (via MockPriceProvider), test DB helpers
+packages/db       Drizzle schema, SQL migrations, migrate/reset, test-database helpers
+packages/pricing  PriceProvider contract, MockPriceProvider, catalog data, ingestion pipeline, seed
 e2e/              Playwright
 ```
 - **ORM: Drizzle (decided, Q-1).** The schema leans on Postgres features: generated columns, `daterange` with an exclusion constraint, a trigger, `pg_trgm`, `citext`, and window queries for historic lows. Drizzle is SQL-first and handles these as first-class SQL or custom migrations, without a Rust engine or codegen step. Its query builder also stays close enough to SQL for the comparison and history queries. Prisma would need `Unsupported(...)` fields and raw SQL for most of the interesting parts. You confirmed Drizzle.
@@ -433,6 +434,20 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 - Seed: 10 stores, ~40 DFW mock locations, ~14 categories, **≥150 products**, items at all 10 stores, **12 months** of periods, Tom Thumb and Kroger member-only prices.
 - API `/health` and `/health/ready`. The web app shell renders and shows API health. Dark-mode toggle works.
 - `scripts/verify.sh` and a GitHub Actions workflow that runs it with a Postgres service.
+
+**Delivered (2026-11-16): `pnpm verify` green — 197 unit/API/DB tests + 8 e2e (mobile + desktop).** Deviations from the plan above:
+- **New package `packages/pricing`.** It holds the provider contract, mock provider, catalog data, ingestion and seed. The seed must use the ingestion pipeline, and `db` must not depend on `api`, so this code couldn't live in `apps/api/providers` or `packages/db/seed` as originally planned. Dependency direction: `api → pricing → db → core`.
+- **Typecheck runs `tsc` per package** (`pnpm -r typecheck`). TS project references are not used: workspace packages export their TypeScript source directly, and tsx, Vite and Vitest consume it.
+- **Version pins:**
+  - React 19 and Tailwind 4 (current majors) rather than React 18.
+  - TypeScript 5.9, because typescript-eslint doesn't support TS 7 yet.
+  - ESLint 9, because jsx-a11y doesn't support ESLint 10 yet.
+  - `@playwright/test` 1.63.0, to match the preinstalled browsers.
+- **Test databases are created per suite** (`sgs_test_<suite>`) by the harness, so packages can test in parallel. docker-compose's init script creates only `sgs_e2e`.
+- **Local Postgres fallback:** `pnpm db:up` uses docker compose, or a local PostgreSQL install when no Docker daemon is available. That is how this environment ran, on PG 16. CI uses `postgres:17-alpine`.
+- **Catalog size:** 189 products, 14 aisles under 4 departments, 205 aliases, 1,919 store items, about 25k price periods. The seed takes about 17 s.
+- **Planted review-queue items:** each chain has 2 deliberately unmatchable "seasonal" items and 1 unparseable size ("varies"). They exercise the review queue, and a test checks the matcher against provider ground truth: zero wrong matches, and every match method is used.
+- **Calibration** at seed `20261116`, anchor `2026-11-01`. All chain indices fall inside §2.6. Family week: best plan of up to 3 stores $159.53 vs Kroger $187.84 (−15.1%) and Target $208.36 (−23.4%). The Target figure sits near the 25% ceiling.
 
 **Acceptance:**
 1. From a fresh clone, `pnpm i && pnpm db:up && pnpm db:reset && pnpm dev` produces a web app on :5173 showing "API: ok" and an API on :4000 where `/health/ready` returns 200.
@@ -671,7 +686,7 @@ CREATE TABLE users (
   home_zip            char(5),
   home_lat            numeric(9,6),
   home_lng            numeric(9,6),
-  vehicle_mpg         numeric(4,1) NOT NULL DEFAULT 25.0 CHECK (vehicle_mpg > 0),
+  vehicle_mpg         numeric(4,1) NOT NULL DEFAULT 25 CHECK (vehicle_mpg > 0),
   fuel_cents_per_gal  integer CHECK (fuel_cents_per_gal > 0),  -- NULL → metro default
   baseline_store_id   smallint REFERENCES stores(id),          -- "where I usually shop"; savings baseline
   theme               theme_pref NOT NULL DEFAULT 'system',
@@ -832,7 +847,7 @@ CREATE TABLE price_points (
   observed_at           timestamptz NOT NULL DEFAULT now(),
   CHECK (sale_price_cents IS NULL OR sale_price_cents < regular_price_cents),
   CHECK ((sale_price_cents IS NULL) = (promo_type = 'none')),
-  EXCLUDE USING gist (
+  CONSTRAINT price_points_no_overlap EXCLUDE USING gist (
     store_item_id WITH =,
     metro WITH =,
     (COALESCE(store_location_id, 0)) WITH =,

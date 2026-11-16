@@ -1,0 +1,24 @@
+{
+  "name": "@sgs/pricing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "seed": "tsx src/cli/seed.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit"
+  },
+  "dependencies": {
+    "@sgs/core": "workspace:*",
+    "@sgs/db": "workspace:*",
+    "drizzle-orm": "^0.45.4"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "vitest": "^5.1.0"
+  }
+}
