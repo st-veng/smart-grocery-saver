@@ -19,8 +19,8 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 | Q-10 | **Households:** one account per family, or shared lists between family members in MVP? | One account. Sharing is roadmap |
 | Q-11 | **Deployment target:** where does this run beyond local and CI (Fly, Render, AWS)? This only affects Phase 1 config, such as the Dockerfile. | Local + CI only. A Dockerfile is added but not deployed |
 | Q-12 | **Analytics and telemetry:** any product analytics in MVP? | None |
-| Q-13 | **Kroger card prices:** Tom Thumb member prices are now modelled as loyalty prices. Should Kroger's card and digital-coupon prices get the same treatment (member-only, counted by default), or stay ordinary sales anyone gets? | Stay ordinary sales |
-| Q-14 | **Store pre-selection:** with 10 stores, onboarding pre-selects the 5 nearest to the user's ZIP. Is 5 right, or should it be all stores within N miles? | 5 nearest |
+| Q-13 | ~~Kroger card prices: member-only like Tom Thumb, or ordinary sales?~~ | **Decided:** member-only Kroger Plus Card prices (ad prices and digital coupons), counted by default |
+| Q-14 | ~~Store pre-selection rule?~~ | **Decided:** pre-select chains with a location within 7 mi of the user's home. Reference/demo origin is Main St & Preston Rd, Frisco TX. SPEC §2.7 |
 
 ## Assumptions
 
@@ -28,12 +28,12 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 |---|---|
 | A-1 | MVP is a responsive web app. "Mobile-first" means 360px design width and a PWA install later. No native app. |
 | A-2 | Sales tax is ignored. Texas exempts most grocery food items, so comparisons are pre-tax and say so. |
-| A-3 | Prices are in-store, not delivery/pickup. **Loyalty member prices count by default** (decided): Tom Thumb for U prices are member-only periods that apply when the user's loyalty card is on, which it is by default. Users can turn it off per store. Kroger digital coupons stay ordinary `sale` periods **[Q-13]**. |
+| A-3 | Prices are in-store, not delivery/pickup. **Loyalty member prices count by default** (decided): Tom Thumb for U and Kroger Plus Card prices (including Kroger digital coupons) are member-only periods. They apply when the user's loyalty card is on, which it is by default. Users can turn it off per store. |
 | A-4 | Prices are metro-wide per chain in MVP. The schema supports per-location prices without migration. |
 | A-5 | You pay for whole packages. The comparison rounds up to whole packages (honest bulk-pack math) and reports unit price separately. |
 | A-6 | One metro (DFW). `metro` columns exist everywhere prices or locations live, so adding metros is data, not schema. |
 | A-7 | "Today" and all price dates use America/Chicago. |
-| A-8 | Geocoding uses a bundled table of DFW ZIP centroids. There is no external geocoding API, and users can't pick an exact address in MVP. |
+| A-8 | Geocoding uses a bundled table of DFW ZIP centroids. There is no external geocoding API, and users can't pick an exact address in MVP. Distances for the 7-mile pre-selection are measured from the ZIP centroid, so they can be off by about 1–2 miles. |
 | A-9 | Distance = haversine × 1.25 circuity factor. There is no routing API, and the map is a list of stops, not an interactive map. |
 | A-10 | Fuel default is $2.79/gal (env-configurable, user-overridable) and MPG defaults to 25. |
 | A-11 | Mock store locations use real DFW suburbs with approximate coordinates and are labelled "(mock)". They are not claims about real store addresses. |
@@ -42,3 +42,4 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 | A-14 | English only, USD only, US customary units with metric parsing supported. |
 | A-15 | Postgres 17 runs in docker-compose. The CI service also uses 17. The DDL was validated on 16, and nothing in it is 17-specific. |
 | A-16 | Trader Joe's and Sprouts carry a narrower assortment, so they will often be "incomplete" for a full list. They are never shown as cheapest for the whole list when items are missing, but they can win individual items and appear in multi-store plans. |
+| A-17 | "Main St & Preston Rd, Frisco" means the intersection point (≈ 33.1507, −96.8236). It is the default origin, the demo user's home and the e2e fixture home. It is **not** a fixed centre for every user: each user's 7-mile radius is measured from their own home. |

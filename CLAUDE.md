@@ -113,7 +113,8 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 ## Environment (`.env.example` is committed; `.env` is not)
 `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRET`, `COOKIE_SECURE`, `WEB_ORIGIN`, `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `AUTH_GOOGLE_MODE=mock|real`, `PRICE_PROVIDER=mock`, `SEED`,
-`SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`.
+`SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`, `PRESELECT_RADIUS_MILES=7`,
+`DEFAULT_ORIGIN=33.1507,-96.8236` (Main St & Preston Rd, Frisco TX — demo/e2e user home).
 Missing Google credentials ⇒ mock mode automatically; the API refuses to start with `AUTH_GOOGLE_MODE=mock` when
 `NODE_ENV=production`.
 

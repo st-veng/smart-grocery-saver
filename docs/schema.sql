@@ -53,7 +53,7 @@ CREATE TABLE stores (
   name                 text NOT NULL,
   requires_membership  boolean NOT NULL DEFAULT false,
   membership_fee_cents integer CHECK (membership_fee_cents >= 0),
-  loyalty_program      text,                          -- free card program, e.g. 'Tom Thumb for U'; NULL = none
+  loyalty_program      text,                          -- free card program: 'Tom Thumb for U', 'Kroger Plus Card'; NULL = none
   brand_color          char(7) NOT NULL,              -- '#0071CE'
   sort_order           smallint NOT NULL DEFAULT 0
 );

@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 2: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 3: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing incl. Kroger; 7-mile store pre-selection) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -93,13 +93,18 @@ eligible packages:
 Membership stores (Costco, Sam's) are excluded unless `user_stores.has_membership` is true **[Q-3]**. Disabled stores
 are always excluded.
 
+A store with no eligible item gets a line marked `missing`. Its total is flagged "incomplete" and it is never shown
+as the cheapest store for the full list. The UI offers "cheapest with N items missing" as a secondary sort.
+
 **Member and loyalty prices.** A price period with `member_only = true` gives its `sale_price_cents` only to users
-who qualify. Paid-membership stores qualify through `has_membership`. Stores with a free `loyalty_program` (Tom
-Thumb for U) qualify through `user_stores.has_loyalty`, which **defaults to true**, so Tom Thumb member prices count
-unless the user turns the card off in Settings. Everyone else pays `regular_price_cents` for that period. The UI
-labels these prices "for U price" so users know a card is needed. Kroger digital coupons stay ordinary `sale`
-periods for now **[Q-13]**. A store with no eligible item gets a line marked `missing`. Its total is flagged "incomplete" and it
-is never shown as the cheapest store for the full list. The UI offers "cheapest with N items missing" as a secondary sort.
+who qualify. Paid-membership stores qualify through `has_membership`. Stores with a free `loyalty_program` qualify
+through `user_stores.has_loyalty`, which **defaults to true**. Two chains have one:
+- **Tom Thumb** ("Tom Thumb for U").
+- **Kroger** ("Kroger Plus Card"). Its card prices and digital coupons are both member-only periods.
+
+So member prices at both count unless the user turns the card off in Settings. Everyone else pays
+`regular_price_cents` for that period. The UI labels these prices with the program name ("for U price", "Card
+price") so users know a card is needed.
 
 ### 2.4 Product matching pipeline (ingestion)
 `PriceProvider` → **normalize** (parse size, brand, store-brand flag) → **match** → upsert `store_items` → write price
@@ -147,7 +152,7 @@ providers plug-compatible. `MockPriceProvider` is deterministic, using a seeded 
 | Costco | 0.78–0.84 per unit | ~55%, bulk packs only | monthly member coupons |
 | Sam's Club | 0.80–0.86 per unit | ~55%, bulk packs only | monthly instant savings |
 | H-E-B | 0.90–0.95 | ~92% | weekly ad (Wed) |
-| Kroger | 1.00 (reference) | ~95% | weekly ad (Wed–Tue), 20–35% off, ~12% of items |
+| Kroger | 1.00 (reference) | ~95% | weekly ad (Wed–Tue), 20–35% off, ~12% of items; most ad prices and all digital coupons are **member-only** card prices |
 | Target | 1.03–1.08 | ~85% | weekly Circle deals (Sun–Sat) |
 | Tom Thumb | 1.08–1.12 | ~93% | weekly ad (Wed–Tue); ~18% of items have **member-only** "for U" prices 25–40% off |
 | Sprouts | produce 0.88–0.94; other 1.04–1.10 | ~65%, produce/bulk/natural-heavy | weekly ad (Wed–Tue), **Wednesdays overlap** old and new ads |
@@ -168,6 +173,17 @@ Other seeded behaviour:
 **Acceptance check:** the "Typical DFW family week" fixture list (35 items) shows a 10–25% saving between the best multi-store plan and the Kroger and Target baselines.
 
 ---
+
+### 2.7 Store pre-selection (onboarding)
+- **Rule:** a chain is pre-selected when its nearest location is **within 7.0 miles straight-line (haversine, no circuity factor)** of the user's home point. Users can tick or untick any chain afterwards.
+- **Home point:** the centroid of the user's ZIP **[A-8]**.
+- **Reference point:** the **Main St & Preston Rd intersection in Frisco, TX** (≈ 33.1507, −96.8236; coordinates to be confirmed against a map in Phase 1). It is used for three things:
+  - the default origin before the user enters a ZIP;
+  - the seeded demo user's home;
+  - the e2e fixture user's home.
+- **Fallback:** if no chain is within 7 miles, the 3 nearest chains are pre-selected and the UI says "No stores within 7 mi, showing the nearest".
+- **Config:** `PRESELECT_RADIUS_MILES=7` and `DEFAULT_ORIGIN=33.1507,-96.8236` in config. Constants live in `core/geo`.
+- **Seed constraint:** mock locations put most chains within 7 miles of the reference point, but **at least one chain's nearest location lies beyond 7 miles**, so the rule is visible and testable.
 
 ## 3. Architecture
 
@@ -368,9 +384,10 @@ S7 Product detail / history    S8 Optimizer / plan            S9 Dashboard
 │ [🔔 Alert me at low] │       │ [I shopped this ✓]   │       │ [CSV] [PDF]          │
 └──────────────────────┘       └──────────────────────┘       └──────────────────────┘
 S10 Notifications: list of alert hits ("Whole milk hit a 1-year low at Aldi: $2.98"), mark read, link to S7.
-S11 Settings: profile, ZIP, stores, memberships & loyalty cards (Tom Thumb for U on by default), vehicle/fuel, time value, baseline store, theme, log out.
+S11 Settings: profile, ZIP, stores, memberships & loyalty cards (Tom Thumb for U and Kroger Plus Card on by default), vehicle/fuel, time value, baseline store, theme, log out.
 S12 Templates: system + mine; preview; "Use template".   S13 Trip history/detail: snapshot of a committed plan.
-S2 lists all 10 stores; the 5 nearest to the user's ZIP are pre-selected, and Costco/Sam's ask about membership.
+S2 lists all 10 stores. A chain is pre-selected if any of its locations is within 7 miles of the user's home (rule in
+§2.7). Costco and Sam's ask about membership, and Tom Thumb and Kroger show their loyalty card as on.
 Empty/error/loading states are required for every screen (skeletons, retry, offline banner).
 ```
 
@@ -395,7 +412,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 - Drizzle schema equivalent to Appendix A. Migrations in `packages/db/migrations`, including custom SQL for the functions, trigger and exclusion constraint.
 - `packages/core/units`: factor table, conversions, `parseSize`, `unitPrice`, `coverCost`.
 - `MockPriceProvider` and the ingestion pipeline (normalize → match → upsert → periods).
-- Seed: 10 stores, ~40 DFW mock locations, ~14 categories, **≥150 products**, items at all 10 stores, **12 months** of periods, Tom Thumb member-only prices.
+- Seed: 10 stores, ~40 DFW mock locations, ~14 categories, **≥150 products**, items at all 10 stores, **12 months** of periods, Tom Thumb and Kroger member-only prices.
 - API `/health` and `/health/ready`. The web app shell renders and shows API health. Dark-mode toggle works.
 - `scripts/verify.sh` and a GitHub Actions workflow that runs it with a Postgres service.
 
@@ -407,7 +424,9 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Every product has items at ≥4 chains.
    - Every item has continuous coverage over 365 days, with no gaps or overlaps.
    - Each chain except Trader Joe's has ≥1 sale per month. Trader Joe's has none.
-   - Tom Thumb has member-only periods every month. Sprouts' Wednesday overlap produces no overlapping periods.
+   - Tom Thumb and Kroger have member-only periods every month.
+   - At least one chain's nearest location is beyond 7 miles of the Frisco reference point, and most chains are within it (§2.7).
+   - Sprouts' Wednesday overlap produces no overlapping periods.
    - Chain price indices fall inside the §2.6 calibration table.
    - The family fixture list's saving falls in the 10–25% band.
 4. Unit tests pass for the following.
@@ -437,8 +456,9 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Protected routes return 401 unauthenticated.
    - A cross-user resource returns 404.
 2. The Google mock flow creates a user, and the second login links rather than duplicates.
-3. No password hashes or tokens ever appear in responses or logs (log redaction test).
-4. Playwright: register → onboarding → land on Lists. Logout → protected URL redirects to login. Login with Google (mock).
+3. Onboarding pre-selection (unit + API): a chain exactly 7.0 mi away is included, and one at 7.01 mi is excluded. The no-stores-in-range fallback returns the 3 nearest. A user at the Frisco reference point gets the expected seeded set.
+4. No password hashes or tokens ever appear in responses or logs (log redaction test).
+5. Playwright: register → onboarding (from the Frisco reference home, the expected chains are pre-checked and Tom Thumb/Kroger cards show as on) → land on Lists. Logout → protected URL redirects to login. Login with Google (mock).
 
 ### Phase 3: Grocery lists
 - List CRUD, items CRUD, reorder, check-off and category grouping.
@@ -472,7 +492,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - The count↔mass bridge flagged approximate.
    - Brand and exact-item modes.
    - Membership exclusion.
-   - Loyalty pricing: Tom Thumb member price applies when `hasLoyalty` (the default) and regular price applies when it's off. Turning it off can change the cheapest store.
+   - Loyalty pricing for both Tom Thumb and Kroger: the member price applies when `hasLoyalty` (the default) and the regular price applies when it's off. Turning it off can change the cheapest store.
    - Missing items mark the store incomplete.
    - Ties.
    - Half-even rounding.
@@ -598,7 +618,7 @@ CREATE TABLE stores (
   name                 text NOT NULL,
   requires_membership  boolean NOT NULL DEFAULT false,
   membership_fee_cents integer CHECK (membership_fee_cents >= 0),
-  loyalty_program      text,                          -- free card program, e.g. 'Tom Thumb for U'; NULL = none
+  loyalty_program      text,                          -- free card program: 'Tom Thumb for U', 'Kroger Plus Card'; NULL = none
   brand_color          char(7) NOT NULL,              -- '#0071CE'
   sort_order           smallint NOT NULL DEFAULT 0
 );
