@@ -48,10 +48,12 @@ CREATE TYPE theme_pref     AS ENUM ('system', 'light', 'dark');
 -- ───────────────────────── Stores ─────────────────────────
 CREATE TABLE stores (
   id                   smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  slug                 text NOT NULL UNIQUE,          -- 'walmart','costco','sams','target','kroger','heb','aldi'
+  slug                 text NOT NULL UNIQUE,          -- 'walmart','costco','sams','target','kroger','heb','aldi',
+                                                      -- 'tomthumb','sprouts','traderjoes'
   name                 text NOT NULL,
   requires_membership  boolean NOT NULL DEFAULT false,
   membership_fee_cents integer CHECK (membership_fee_cents >= 0),
+  loyalty_program      text,                          -- free card program, e.g. 'Tom Thumb for U'; NULL = none
   brand_color          char(7) NOT NULL,              -- '#0071CE'
   sort_order           smallint NOT NULL DEFAULT 0
 );
@@ -122,7 +124,8 @@ CREATE TABLE user_stores (
   user_id               uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   store_id              smallint NOT NULL REFERENCES stores(id),
   enabled               boolean NOT NULL DEFAULT true,
-  has_membership        boolean NOT NULL DEFAULT false,
+  has_membership        boolean NOT NULL DEFAULT false, -- paid warehouse membership (Costco, Sam's)
+  has_loyalty           boolean NOT NULL DEFAULT true,  -- free loyalty card; member prices count by default
   preferred_location_id integer REFERENCES store_locations(id),
   PRIMARY KEY (user_id, store_id)
 );
@@ -234,7 +237,8 @@ CREATE TABLE price_points (
   promo_type            promo_type NOT NULL DEFAULT 'none',
   promo_label           text,                          -- '2 for $5', 'Circle deal'
   min_qty               smallint NOT NULL DEFAULT 1 CHECK (min_qty >= 1),
-  member_only           boolean NOT NULL DEFAULT false,
+  member_only           boolean NOT NULL DEFAULT false, -- sale needs paid membership or loyalty card;
+                                                        -- non-members pay regular_price_cents
   source                text NOT NULL,                 -- provider id: 'mock'
   observed_at           timestamptz NOT NULL DEFAULT now(),
   CHECK (sale_price_cents IS NULL OR sale_price_cents < regular_price_cents),

@@ -19,6 +19,8 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 | Q-10 | **Households:** one account per family, or shared lists between family members in MVP? | One account. Sharing is roadmap |
 | Q-11 | **Deployment target:** where does this run beyond local and CI (Fly, Render, AWS)? This only affects Phase 1 config, such as the Dockerfile. | Local + CI only. A Dockerfile is added but not deployed |
 | Q-12 | **Analytics and telemetry:** any product analytics in MVP? | None |
+| Q-13 | **Kroger card prices:** Tom Thumb member prices are now modelled as loyalty prices. Should Kroger's card and digital-coupon prices get the same treatment (member-only, counted by default), or stay ordinary sales anyone gets? | Stay ordinary sales |
+| Q-14 | **Store pre-selection:** with 10 stores, onboarding pre-selects the 5 nearest to the user's ZIP. Is 5 right, or should it be all stores within N miles? | 5 nearest |
 
 ## Assumptions
 
@@ -26,7 +28,7 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 |---|---|
 | A-1 | MVP is a responsive web app. "Mobile-first" means 360px design width and a PWA install later. No native app. |
 | A-2 | Sales tax is ignored. Texas exempts most grocery food items, so comparisons are pre-tax and say so. |
-| A-3 | Prices are shown as in-store, not delivery/pickup, and there are no loyalty-card-only prices. Kroger digital coupons are modelled as ordinary `sale` periods. |
+| A-3 | Prices are in-store, not delivery/pickup. **Loyalty member prices count by default** (decided): Tom Thumb for U prices are member-only periods that apply when the user's loyalty card is on, which it is by default. Users can turn it off per store. Kroger digital coupons stay ordinary `sale` periods **[Q-13]**. |
 | A-4 | Prices are metro-wide per chain in MVP. The schema supports per-location prices without migration. |
 | A-5 | You pay for whole packages. The comparison rounds up to whole packages (honest bulk-pack math) and reports unit price separately. |
 | A-6 | One metro (DFW). `metro` columns exist everywhere prices or locations live, so adding metros is data, not schema. |
@@ -39,3 +41,4 @@ if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**,
 | A-13 | The seed covers ~14 categories. Fresh produce and meat include per-weight items, and nothing is substituted across products automatically. "Store-brand equivalent" suggestions are roadmap. |
 | A-14 | English only, USD only, US customary units with metric parsing supported. |
 | A-15 | Postgres 17 runs in docker-compose. The CI service also uses 17. The DDL was validated on 16, and nothing in it is 17-specific. |
+| A-16 | Trader Joe's and Sprouts carry a narrower assortment, so they will often be "incomplete" for a full list. They are never shown as cheapest for the whole list when items are missing, but they can win individual items and appear in multi-store plans. |

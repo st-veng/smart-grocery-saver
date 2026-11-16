@@ -1,6 +1,6 @@
 # CLAUDE.md — Smart Grocery Saver
 
-Price-comparison app for budget-conscious DFW families (Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi).
+Price-comparison app for budget-conscious DFW families (Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts, Trader Joe's).
 Read `SPEC.md` before any work. It is the source of truth for scope, data model, API and acceptance criteria.
 `OPEN_QUESTIONS.md` tracks decisions awaiting the product owner.
 
@@ -87,6 +87,7 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 - `oz` (mass) and `fl_oz` (volume) are distinct units. Never coerce one to the other.
 - Unparseable sizes and low-confidence matches go to the review queue. Never guess.
 - Price dates are `YYYY-MM-DD` in America/Chicago. Timestamps are UTC `timestamptz`.
+- Member-only prices apply only to qualifying users: a paid membership (`has_membership`) or a loyalty card (`has_loyalty`, which defaults to true). Non-members pay the regular price for that period. Eligibility logic lives in `core` only.
 - Comparisons always report **line cost** (packages actually bought) separately from **unit price**.
 
 **API**

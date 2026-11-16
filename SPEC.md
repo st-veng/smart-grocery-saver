@@ -1,9 +1,9 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 2: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
-**Walmart, Costco, Sam's Club, Target, Kroger, H-E-B and Aldi**, and decides whether one store or a multi-store run
+**Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
 is worth the drive.
 
 Open questions and assumptions are in [`OPEN_QUESTIONS.md`](./OPEN_QUESTIONS.md). Where this spec makes a call that is
@@ -17,8 +17,8 @@ really yours to make, it is marked **[A-n]** (assumption) or **[Q-n]** (open que
 
 | Area | MVP capability |
 |---|---|
-| Accounts | Email/password sign-up and login. Google OAuth, with a local mock consent screen when credentials are absent. Refresh-token sessions and protected routes. Onboarding: ZIP, stores, memberships, vehicle MPG, "usual store". |
-| Catalog | ≥150 canonical products in ~14 categories. Each is matched to package-level store items at all 7 chains. Search by name or alias. |
+| Accounts | Email/password sign-up and login. Google OAuth, with a local mock consent screen when credentials are absent. Refresh-token sessions and protected routes. Onboarding: ZIP, stores (nearest pre-selected), memberships and loyalty cards, vehicle MPG, "usual store". |
+| Catalog | ≥150 canonical products in ~14 categories. Each is matched to package-level store items across the 10 chains (coverage varies by chain, §2.6). Search by name or alias. |
 | Lists | Create, rename, archive and duplicate lists. Add items by search or free text. Quantity + unit, brand preference, check off, reorder. Category grouping. System and user templates. CSV and pasted-text import with match preview. |
 | Comparison | Per-item and per-store cost for a list. Normalized unit prices ($/oz, $/fl oz, $/lb, $/ea). Cheapest store per item and cheapest single store highlighted. % savings vs. baseline store. Missing-item and approximate-match flags. |
 | History | 12 months of price periods per store item. 30/90/365-day charts per product (one line per store). Historic-low badge. Historic-low and target-price alerts delivered in-app. |
@@ -32,7 +32,7 @@ premium tier, household sharing, email/push notifications, password reset by ema
 receipt scanning, real driving directions (straight-line × circuity factor instead **[A-9]**).
 
 ### 1.3 Non-functional targets
-- **Performance (seeded data, laptop, warm DB):** a 50-item list's comparison returns in under 300 ms (p95). The optimizer runs in under 500 ms with 7 stores and max 3 stops. Product history (365d) returns in under 150 ms.
+- **Performance (seeded data, laptop, warm DB):** a 50-item list's comparison returns in under 300 ms (p95). The optimizer runs in under 500 ms with 10 stores and max 3 stops. Product history (365d) returns in under 150 ms.
 - **Correctness:** all money is integer cents. Rounding is half-even, applied only to final line totals. Unit math is in base units (g, ml, ea).
 - **Determinism:** seeded data is reproducible from `SEED` + `SEED_ANCHOR_DATE`. Tests pin both.
 - **Security:** argon2id passwords. httpOnly SameSite=Lax cookies. CSRF header check. Rate-limited auth. Zod validation on every input. Helmet. No secrets in the repo.
@@ -91,7 +91,14 @@ eligible packages:
 | `exact_item` | only the pinned `store_item_id` (that one store) |
 
 Membership stores (Costco, Sam's) are excluded unless `user_stores.has_membership` is true **[Q-3]**. Disabled stores
-are always excluded. A store with no eligible item gets a line marked `missing`. Its total is flagged "incomplete" and it
+are always excluded.
+
+**Member and loyalty prices.** A price period with `member_only = true` gives its `sale_price_cents` only to users
+who qualify. Paid-membership stores qualify through `has_membership`. Stores with a free `loyalty_program` (Tom
+Thumb for U) qualify through `user_stores.has_loyalty`, which **defaults to true**, so Tom Thumb member prices count
+unless the user turns the card off in Settings. Everyone else pays `regular_price_cents` for that period. The UI
+labels these prices "for U price" so users know a card is needed. Kroger digital coupons stay ordinary `sale`
+periods for now **[Q-13]**. A store with no eligible item gets a line marked `missing`. Its total is flagged "incomplete" and it
 is never shown as the cheapest store for the full list. The UI offers "cheapest with N items missing" as a secondary sort.
 
 ### 2.4 Product matching pipeline (ingestion)
@@ -142,8 +149,16 @@ providers plug-compatible. `MockPriceProvider` is deterministic, using a seeded 
 | H-E-B | 0.90–0.95 | ~92% | weekly ad (Wed) |
 | Kroger | 1.00 (reference) | ~95% | weekly ad (Wed–Tue), 20–35% off, ~12% of items |
 | Target | 1.03–1.08 | ~85% | weekly Circle deals (Sun–Sat) |
+| Tom Thumb | 1.08–1.12 | ~93% | weekly ad (Wed–Tue); ~18% of items have **member-only** "for U" prices 25–40% off |
+| Sprouts | produce 0.88–0.94; other 1.04–1.10 | ~65%, produce/bulk/natural-heavy | weekly ad (Wed–Tue), **Wednesdays overlap** old and new ads |
+| Trader Joe's | 0.90–0.95 | ~40%, almost all store brand | no weekly sales; stable prices; few seasonal swings |
 
-\*Index of a chain's per-unit regular price vs. Kroger for the same product.
+\*Index of a chain's per-unit regular price vs. Kroger for the same product. The ranges are estimates for mock data, not research.
+
+Chain-specific notes:
+- **Sprouts:** the Wednesday double-ad day is two promo sources on one date. The generator resolves it to one period per item and day (the lower price wins), so the no-overlap constraint holds.
+- **Trader Joe's:** with ~40% coverage it is often marked incomplete for a full list, and its store-brand items rarely satisfy `match_mode = brand`. It mostly competes in `any` mode and in multi-store plans.
+- **Tom Thumb:** its regular prices are the highest in the set. It is competitive only through member prices, which is why they count by default.
 
 Other seeded behaviour:
 - **Seasonality:** produce varies ±15–30% sinusoidally by type (berries cheap Jun–Aug, citrus cheap Dec–Feb). Turkey is cheap in November. Baking goods go on sale in December. Grilling meats go on sale May–Jul.
@@ -183,9 +198,9 @@ generated base quantity, the dimension trigger and the price-period exclusion co
 
 | Table | Purpose | Key constraints |
 |---|---|---|
-| `stores`, `store_locations` | 7 chains; ~3–5 mock DFW locations each with lat/lng | `slug` unique |
+| `stores`, `store_locations` | 10 chains (+ loyalty program name); ~3–5 mock DFW locations each with lat/lng | `slug` unique |
 | `users`, `auth_identities`, `sessions` | accounts, Google identities, refresh-token families | `email citext` unique; `(provider, subject)` unique |
-| `user_stores` | per-user enabled stores, memberships, preferred location | PK `(user, store)` |
+| `user_stores` | per-user enabled stores, paid memberships, loyalty cards (default on), preferred location | PK `(user, store)` |
 | `categories` | 2-level category tree | `slug` unique |
 | `products` | canonical comparable items | `display_unit` and `default_unit` match `dimension` (or bridged) |
 | `product_aliases` | synonyms for import/matching | unique `lower(alias)`, trigram index |
@@ -235,7 +250,7 @@ Conventions:
 | Method | Path | Notes |
 |---|---|---|
 | PATCH | `/me` | 🔒 displayName, homeZip (geocoded from bundled DFW ZIP centroids **[A-8]**), vehicleMpg, fuelCentsPerGal, baselineStoreId, theme |
-| GET / PUT | `/me/stores` | 🔒 enabled, hasMembership, preferredLocationId per store |
+| GET / PUT | `/me/stores` | 🔒 enabled, hasMembership, hasLoyalty, preferredLocationId per store |
 | GET | `/stores` | chains |
 | GET | `/stores/:slug/locations?near=lat,lng` | sorted by distance |
 
@@ -296,8 +311,8 @@ Text format: one item per line, with leading quantity and unit parsed ("2 lb gro
 |---|---|---|
 | POST | `/lists/:id/optimize` | 🔒 body `{maxStores: 1..3, origin?: {lat,lng}, mpg?, fuelCentsPerGal?, timeValueCentsPerHour?, minutesPerStop?}` → `{single: Plan, multi: Plan[], recommendation}`. Each Plan: stores, ordered route, per-item assignment, itemsCents, distanceMiles, fuelCents, timeCents, totalCents, savingsVsBaselineCents, missing[] |
 
-**Optimizer algorithm (exact):** E = eligible chains, |E| ≤ 7, using each chain's nearest or preferred location.
-1. For every subset S ⊆ E with |S| ≤ maxStores (≤ 63 subsets for maxStores = 3), assign each item to its cheapest line in S. With S fixed, items are independent, so this step is exact.
+**Optimizer algorithm (exact):** E = eligible chains, |E| ≤ 10, using each chain's nearest or preferred location.
+1. For every subset S ⊆ E with |S| ≤ maxStores (≤ 175 subsets for maxStores = 3: 10 + 45 + 120), assign each item to its cheapest line in S. With S fixed, items are independent, so this step is exact.
 2. Compute the cheapest round-trip route home → S → home by brute force.
 3. Plan total = items + fuel + time.
 4. Rank plans, preferring complete ones. The recommendation is multi-store only if it beats the best single store by ≥ max($3, 3%) **[Q-4]**.
@@ -353,8 +368,9 @@ S7 Product detail / history    S8 Optimizer / plan            S9 Dashboard
 │ [🔔 Alert me at low] │       │ [I shopped this ✓]   │       │ [CSV] [PDF]          │
 └──────────────────────┘       └──────────────────────┘       └──────────────────────┘
 S10 Notifications: list of alert hits ("Whole milk hit a 1-year low at Aldi: $2.98"), mark read, link to S7.
-S11 Settings: profile, ZIP, stores & memberships, vehicle/fuel, time value, baseline store, theme, log out.
+S11 Settings: profile, ZIP, stores, memberships & loyalty cards (Tom Thumb for U on by default), vehicle/fuel, time value, baseline store, theme, log out.
 S12 Templates: system + mine; preview; "Use template".   S13 Trip history/detail: snapshot of a committed plan.
+S2 lists all 10 stores; the 5 nearest to the user's ZIP are pre-selected, and Costco/Sam's ask about membership.
 Empty/error/loading states are required for every screen (skeletons, retry, offline banner).
 ```
 
@@ -379,7 +395,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 - Drizzle schema equivalent to Appendix A. Migrations in `packages/db/migrations`, including custom SQL for the functions, trigger and exclusion constraint.
 - `packages/core/units`: factor table, conversions, `parseSize`, `unitPrice`, `coverCost`.
 - `MockPriceProvider` and the ingestion pipeline (normalize → match → upsert → periods).
-- Seed: 7 stores, ~25 DFW mock locations, ~14 categories, **≥150 products**, all 7 stores, **12 months** of periods.
+- Seed: 10 stores, ~40 DFW mock locations, ~14 categories, **≥150 products**, items at all 10 stores, **12 months** of periods, Tom Thumb member-only prices.
 - API `/health` and `/health/ready`. The web app shell renders and shows API health. Dark-mode toggle works.
 - `scripts/verify.sh` and a GitHub Actions workflow that runs it with a Postgres service.
 
@@ -390,7 +406,8 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - ≥150 products. Every chain has items.
    - Every product has items at ≥4 chains.
    - Every item has continuous coverage over 365 days, with no gaps or overlaps.
-   - Each chain has ≥1 sale per month.
+   - Each chain except Trader Joe's has ≥1 sale per month. Trader Joe's has none.
+   - Tom Thumb has member-only periods every month. Sprouts' Wednesday overlap produces no overlapping periods.
    - Chain price indices fall inside the §2.6 calibration table.
    - The family fixture list's saving falls in the 10–25% band.
 4. Unit tests pass for the following.
@@ -455,6 +472,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - The count↔mass bridge flagged approximate.
    - Brand and exact-item modes.
    - Membership exclusion.
+   - Loyalty pricing: Tom Thumb member price applies when `hasLoyalty` (the default) and regular price applies when it's off. Turning it off can change the cheapest store.
    - Missing items mark the store incomplete.
    - Ties.
    - Half-even rounding.
@@ -511,7 +529,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 ---
 
 ## 8. Roadmap (post-MVP, not scheduled)
-1. **Real price providers.** Retailer APIs, licensed data feeds, and receipt/flyer ingestion. Comes with a legal/ToS review **[Q-8]** and a matching review admin UI.
+1. **Real price providers.** Retailer APIs, licensed data feeds, and receipt/flyer ingestion. Comes with a legal/ToS review **[Q-8]** and a matching review admin UI. Trader Joe's publishes no online prices, so it likely needs receipt or crowd-sourced data.
 2. **Pantry.** Track what's on hand and auto-suggest lists.
 3. **Deal engine.** Weekly-ad ingestion, stock-up signals ("buy 3, it's a 1-year low"), and coupon stacking.
 4. **Budgets.** Monthly budget, category caps, pace alerts.
@@ -575,10 +593,12 @@ CREATE TYPE theme_pref     AS ENUM ('system', 'light', 'dark');
 -- ───────────────────────── Stores ─────────────────────────
 CREATE TABLE stores (
   id                   smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  slug                 text NOT NULL UNIQUE,          -- 'walmart','costco','sams','target','kroger','heb','aldi'
+  slug                 text NOT NULL UNIQUE,          -- 'walmart','costco','sams','target','kroger','heb','aldi',
+                                                      -- 'tomthumb','sprouts','traderjoes'
   name                 text NOT NULL,
   requires_membership  boolean NOT NULL DEFAULT false,
   membership_fee_cents integer CHECK (membership_fee_cents >= 0),
+  loyalty_program      text,                          -- free card program, e.g. 'Tom Thumb for U'; NULL = none
   brand_color          char(7) NOT NULL,              -- '#0071CE'
   sort_order           smallint NOT NULL DEFAULT 0
 );
@@ -649,7 +669,8 @@ CREATE TABLE user_stores (
   user_id               uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   store_id              smallint NOT NULL REFERENCES stores(id),
   enabled               boolean NOT NULL DEFAULT true,
-  has_membership        boolean NOT NULL DEFAULT false,
+  has_membership        boolean NOT NULL DEFAULT false, -- paid warehouse membership (Costco, Sam's)
+  has_loyalty           boolean NOT NULL DEFAULT true,  -- free loyalty card; member prices count by default
   preferred_location_id integer REFERENCES store_locations(id),
   PRIMARY KEY (user_id, store_id)
 );
@@ -761,7 +782,8 @@ CREATE TABLE price_points (
   promo_type            promo_type NOT NULL DEFAULT 'none',
   promo_label           text,                          -- '2 for $5', 'Circle deal'
   min_qty               smallint NOT NULL DEFAULT 1 CHECK (min_qty >= 1),
-  member_only           boolean NOT NULL DEFAULT false,
+  member_only           boolean NOT NULL DEFAULT false, -- sale needs paid membership or loyalty card;
+                                                        -- non-members pay regular_price_cents
   source                text NOT NULL,                 -- provider id: 'mock'
   observed_at           timestamptz NOT NULL DEFAULT now(),
   CHECK (sale_price_cents IS NULL OR sale_price_cents < regular_price_cents),
