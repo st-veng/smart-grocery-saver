@@ -1,21 +1,21 @@
 # Assumptions & Open Questions
 
 Numbers are referenced from SPEC.md as **[A-n]** / **[Q-n]**. Each open question lists the default I will build
-if you don't answer. Questions marked ⚑ are worth deciding **before Phase 1**, because they shape the schema or seed.
+if you don't answer. Decided questions are struck through and kept for the record. None of the remaining open questions block Phase 1.
 
 ## Open questions
 
 | # | Question | Default if unanswered |
 |---|---|---|
-| ⚑ Q-1 | **ORM:** OK with Drizzle? It handles daterange exclusion, generated columns, triggers and trigram natively in SQL migrations. Prisma would need raw SQL for most of the schema's core. | Drizzle |
-| ⚑ Q-2 | **Savings baseline:** savings are measured against the user's chosen "usual store". Alternatives are the average across enabled stores, or the most expensive store (inflates numbers). | User's usual store. If unset, the median-priced enabled store |
-| ⚑ Q-3 | **Warehouse clubs:** if the user has no Costco or Sam's membership, should those stores be (a) hidden, (b) shown greyed out with "needs membership", or (c) included with the annual fee amortized per trip? | (b) Excluded from totals but shown greyed out, with a "you'd save $X/yr with membership" hint later |
+| Q-1 | ~~ORM: Drizzle or Prisma?~~ | **Decided:** Drizzle |
+| Q-2 | ~~Savings baseline?~~ | **Decided:** the user's usual store. If unset, the median-priced enabled store |
+| Q-3 | ~~Warehouse clubs without a membership?~~ | **Decided:** never greyed out. Member clubs count like any store. Non-member clubs are omitted from comparisons and plans but stay toggleable in Settings. Demo/e2e user has a Costco membership (Sam's off) |
 | Q-4 | **Multi-store recommendation threshold:** recommend the extra stop only if it saves at least max($3, 3%) after fuel. Is that the right bar? Should time cost be on by default? | Use that threshold. Time cost is opt-in (default $0/hr; 10 min per stop when enabled) |
 | Q-5 | **Sessions:** the spec uses a JWT access cookie plus a rotating DB-backed refresh token. A plain server-side session cookie would be simpler with equal security for a single web client. Which do you prefer, given native apps are on the roadmap? | JWT + refresh (native-friendly) |
 | Q-6 | **Password reset and email verification:** in MVP or not? Either needs an email provider. | Out of MVP. Add a dev-console mailer stub in Phase 2 only if you want reset |
 | Q-7 | **Historic-low rule:** should an alert fire only when the price is *strictly* below the prior 365-day low, or also when it *ties* the low? Is the low per product across stores, or per store? | Strictly lower. Per product, across the user's eligible stores, using unit price |
 | Q-8 | **Real data later:** do you already have a data source in mind (retailer partner APIs, a licensed aggregator, receipt crowdsourcing)? Scraping retailer sites likely violates their ToS. This affects how the provider interface handles auth and rate limits. | Interface stays provider-agnostic. No scraping code |
-| Q-9 | **Brand names in mock data:** may seeded store items use real brand and store-brand names (Great Value, Kirkland, Good & Gather, H-E-B, Simply Nature …) with clearly fake prices? Or should they be generic? | Real store and store-brand names, with a "Demo prices" banner in the UI |
+| Q-9 | ~~Real brand names in mock data?~~ | **Decided:** real store-brand names with mock prices, plus a "Demo prices" banner |
 | Q-10 | **Households:** one account per family, or shared lists between family members in MVP? | One account. Sharing is roadmap |
 | Q-11 | **Deployment target:** where does this run beyond local and CI (Fly, Render, AWS)? This only affects Phase 1 config, such as the Dockerfile. | Local + CI only. A Dockerfile is added but not deployed |
 | Q-12 | **Analytics and telemetry:** any product analytics in MVP? | None |

@@ -87,6 +87,8 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 - `oz` (mass) and `fl_oz` (volume) are distinct units. Never coerce one to the other.
 - Unparseable sizes and low-confidence matches go to the review queue. Never guess.
 - Price dates are `YYYY-MM-DD` in America/Chicago. Timestamps are UTC `timestamptz`.
+- Warehouse clubs are never greyed out. With a membership they behave like any store. Without one they are omitted from comparisons and plans.
+- Store-brand names are real; prices are mock, and the UI shows the "Demo prices" banner while `PRICE_PROVIDER=mock`.
 - Member-only prices apply only to qualifying users: a paid membership (`has_membership`) or a loyalty card (`has_loyalty`, which defaults to true). Non-members pay the regular price for that period. Eligibility logic lives in `core` only.
 - Comparisons always report **line cost** (packages actually bought) separately from **unit price**.
 
@@ -114,7 +116,7 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRET`, `COOKIE_SECURE`, `WEB_ORIGIN`, `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `AUTH_GOOGLE_MODE=mock|real`, `PRICE_PROVIDER=mock`, `SEED`,
 `SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`, `PRESELECT_RADIUS_MILES=7`,
-`DEFAULT_ORIGIN=33.1507,-96.8236` (Main St & Preston Rd, Frisco TX — demo/e2e user home).
+`DEFAULT_ORIGIN=33.1507,-96.8236` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only).
 Missing Google credentials ⇒ mock mode automatically; the API refuses to start with `AUTH_GOOGLE_MODE=mock` when
 `NODE_ENV=production`.
 

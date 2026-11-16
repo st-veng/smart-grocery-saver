@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 3: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing incl. Kroger; 7-mile store pre-selection) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 4: +Tom Thumb, Sprouts, Trader Joe's; loyalty pricing incl. Kroger; 7-mile store pre-selection; Q-1/2/3/9 decided) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -90,8 +90,11 @@ eligible packages:
 | `brand` | items whose `brand` equals the list item's `brand` (case-insensitive), or store items marked equivalent by alias rule |
 | `exact_item` | only the pinned `store_item_id` (that one store) |
 
-Membership stores (Costco, Sam's) are excluded unless `user_stores.has_membership` is true **[Q-3]**. Disabled stores
-are always excluded.
+**Warehouse clubs (Costco, Sam's) [Q-3, decided].** A club is never greyed out. If the user has a membership
+(`user_stores.has_membership`), the club counts in comparisons, totals and plans exactly like any other store. If
+they don't, the club is left out of comparisons and plans entirely, with no greyed-out column and no "needs
+membership" badge. It stays listed in onboarding and Settings with an "I'm a member" toggle. Disabled stores are
+always excluded.
 
 A store with no eligible item gets a line marked `missing`. Its total is flagged "incomplete" and it is never shown
 as the cheapest store for the full list. The UI offers "cheapest with N items missing" as a secondary sort.
@@ -158,6 +161,20 @@ providers plug-compatible. `MockPriceProvider` is deterministic, using a seeded 
 | Sprouts | produce 0.88–0.94; other 1.04–1.10 | ~65%, produce/bulk/natural-heavy | weekly ad (Wed–Tue), **Wednesdays overlap** old and new ads |
 | Trader Joe's | 0.90–0.95 | ~40%, almost all store brand | no weekly sales; stable prices; few seasonal swings |
 
+**Store brands (Q-9, decided):** seeded items use each chain's real store-brand names with mock prices:
+- Walmart: Great Value
+- Costco: Kirkland Signature
+- Sam's Club: Member's Mark
+- Target: Good & Gather, Market Pantry
+- Kroger: Kroger, Simple Truth
+- H-E-B: H-E-B, Hill Country Fare
+- Aldi: Friendly Farms, Simply Nature, Millville
+- Tom Thumb: Signature SELECT, O Organics
+- Sprouts: Sprouts
+- Trader Joe's: Trader Joe's
+
+National-brand items appear alongside them so that `match_mode = brand` has real cases to test.
+
 \*Index of a chain's per-unit regular price vs. Kroger for the same product. The ranges are estimates for mock data, not research.
 
 Chain-specific notes:
@@ -195,7 +212,7 @@ packages/shared   Zod schemas = API contract (request/response types for web & a
 packages/db       Drizzle schema, SQL migrations, seed (via MockPriceProvider), test DB helpers
 e2e/              Playwright
 ```
-- **ORM: Drizzle (recommended over Prisma).** The schema leans on Postgres features: generated columns, `daterange` with an exclusion constraint, a trigger, `pg_trgm`, `citext`, and window queries for historic lows. Drizzle is SQL-first and handles these as first-class SQL or custom migrations, without a Rust engine or codegen step. Its query builder also stays close enough to SQL for the comparison and history queries. Prisma would need `Unsupported(...)` fields and raw SQL for most of the interesting parts. **[Q-1]** confirms this choice.
+- **ORM: Drizzle (decided, Q-1).** The schema leans on Postgres features: generated columns, `daterange` with an exclusion constraint, a trigger, `pg_trgm`, `citext`, and window queries for historic lows. Drizzle is SQL-first and handles these as first-class SQL or custom migrations, without a Rust engine or codegen step. Its query builder also stays close enough to SQL for the comparison and history queries. Prisma would need `Unsupported(...)` fields and raw SQL for most of the interesting parts. You confirmed Drizzle.
 - **Auth:**
   - **Access token:** a JWT (HS256, 15 min) in httpOnly cookie `sgs_at`.
   - **Refresh token:** an opaque 256-bit value in httpOnly cookie `sgs_rt` (path `/api/v1/auth`, 30 days). It is stored as a sha256 hash and rotated on every use. Reusing a rotated token revokes the whole family.
@@ -232,7 +249,7 @@ generated base quantity, the dimension trigger and the price-period exclusion co
 - *Historic low:* `min(effective_price_cents / base_quantity)` over periods overlapping `[today-365, today]`, by product across eligible stores and by store item.
 - *Savings by period:* `sum(savings_cents)` from `trips` by `date_trunc(interval, shopped_on)`.
 
-**Savings definition [Q-2]:** `baseline_total` is what the same list costs at the user's **baseline store**, using the same coverage rules at the same `price_as_of`. `savings = baseline − (items + fuel)`. Only committed trips count. Savings can be negative and are shown honestly.
+**Savings definition [Q-2, decided]:** `baseline_total` is what the same list costs at the user's **baseline store**, using the same coverage rules at the same `price_as_of`. `savings = baseline − (items + fuel)`. Only committed trips count. Savings can be negative and are shown honestly.
 
 ---
 
@@ -340,6 +357,7 @@ Text format: one item per line, with leading quantity and unit parsed ("2 lb gro
 Global shell:
 - **Top bar:** title, dark-mode toggle, notifications bell with unread count.
 - **Bottom tab bar on mobile, left rail on desktop:** Lists · Compare · Deals/History · Dashboard · Settings.
+- **Demo banner:** while `PRICE_PROVIDER=mock`, a slim, dismissible-per-session banner reads "Demo prices: not real store prices" **[Q-9]**.
 - **Visuals:** Tailwind `dark:` variants with class strategy. Theme is stored on the user and mirrored to localStorage. Store colours appear only as small chips with text labels.
 
 ```
@@ -443,6 +461,12 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 - Account linking: a verified Google email that equals an existing email links to that account.
 - `requireAuth` middleware, rate limiting, CSRF header check.
 - Web: S1, S2 onboarding, S11 basics, route guards, silent refresh on 401.
+- Seeded **demo user** `demo@sgs.test` (dev only; password from `DEMO_USER_PASSWORD`):
+  - Home at the Frisco reference point (§2.7).
+  - **Costco membership on**, Sam's off.
+  - Tom Thumb and Kroger cards on.
+  - Kroger as usual store.
+  - The e2e fixture user uses the same profile.
 
 **Acceptance:**
 1. Supertest covers the following.
@@ -491,7 +515,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Per-weight items.
    - The count↔mass bridge flagged approximate.
    - Brand and exact-item modes.
-   - Membership exclusion.
+   - Warehouse clubs: Costco counts for a member. For a non-member it is absent from the response, not flagged or greyed out.
    - Loyalty pricing for both Tom Thumb and Kroger: the member price applies when `hasLoyalty` (the default) and the regular price applies when it's off. Turning it off can change the cheapest store.
    - Missing items mark the store incomplete.
    - Ties.
@@ -501,7 +525,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Doubling the quantity never decreases cost.
    - Savings % is in [−∞, 100).
 3. API: golden-file comparison for the family fixture at a pinned `asOf`. p95 < 300 ms over 50 runs.
-4. Playwright: list → Compare shows the cheapest store with a star icon and text (not colour only). Percentages match the API. Toggling a store off recomputes.
+4. Playwright: list → Compare shows the cheapest store with a star icon and text (not colour only). Percentages match the API. Toggling a store off recomputes. For the demo profile, Costco appears as a normal column and Sam's Club does not appear.
 
 ### Phase 5: Price history & alerts
 - History endpoints (step series), and charts with 30/90/365 toggles, per-store lines and the historic-low marker.
