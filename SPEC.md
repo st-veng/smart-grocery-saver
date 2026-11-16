@@ -523,7 +523,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Missing coverage is ranked below complete plans.
    - `maxStores = 1` equals the Phase 4 cheapest store plus fuel.
 2. Recommendation threshold boundary tests.
-3. Performance: 100-item list, 7 stores, maxStores 3 runs in under 500 ms p95.
+3. Performance: 100-item list, 10 stores, maxStores 3 runs in under 500 ms p95.
 4. Playwright: optimize → choose the multi-store plan → "I shopped this" → dashboard total increases by the plan's savings.
 
 ---
