@@ -20,3 +20,37 @@ describe('loadConfig', () => {
     );
   });
 });
+
+describe('auth configuration guardrails', () => {
+  const prod = { NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(40), COOKIE_SECURE: 'true' };
+
+  it('uses the mock Google login when no client id is configured', () => {
+    expect(loadConfig({}).googleMode).toBe('mock');
+    expect(loadConfig({ GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 's' }).googleMode).toBe(
+      'real',
+    );
+  });
+
+  it('refuses real mode without credentials', () => {
+    expect(() => loadConfig({ AUTH_GOOGLE_MODE: 'real' })).toThrow(/GOOGLE_CLIENT_ID/);
+  });
+
+  it('refuses the mock login, the dev JWT secret and insecure cookies in production', () => {
+    expect(() => loadConfig({ ...prod })).toThrow(/mock Google login is not allowed/);
+    const ok = { ...prod, GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 's' };
+    expect(loadConfig(ok).googleMode).toBe('real');
+    expect(() => loadConfig({ ...ok, JWT_SECRET: undefined })).toThrow(/real JWT_SECRET/);
+    expect(() => loadConfig({ ...ok, COOKIE_SECURE: 'false' })).toThrow(/COOKIE_SECURE/);
+    expect(() => loadConfig({ ...ok, AUTH_RATE_LIMIT_SCALE: '50' })).toThrow(
+      /AUTH_RATE_LIMIT_SCALE/,
+    );
+    expect(() => loadConfig({ JWT_SECRET: 'too-short' })).toThrow(/at least 32/);
+  });
+
+  it('parses the pre-selection radius and default origin', () => {
+    const c = loadConfig({ PRESELECT_RADIUS_MILES: '7', DEFAULT_ORIGIN: '33.1500,-96.8065' });
+    expect(c.PRESELECT_RADIUS_MILES).toBe(7);
+    expect(c.DEFAULT_ORIGIN).toEqual({ lat: 33.15, lng: -96.8065 });
+    expect(() => loadConfig({ DEFAULT_ORIGIN: 'nowhere' })).toThrow(/DEFAULT_ORIGIN/);
+  });
+});

@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 5: Phase 1 delivered; see §7 Phase 1 "Delivered" for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 6: Phases 1–2 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -498,6 +498,21 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 3. Onboarding pre-selection (unit + API): a chain exactly 7.0 mi away is included, and one at 7.01 mi is excluded. The no-stores-in-range fallback returns the 3 nearest. A user at the Frisco reference point gets the expected seeded set.
 4. No password hashes or tokens ever appear in responses or logs (log redaction test).
 5. Playwright: register → onboarding (from the Frisco reference home, the expected chains are pre-checked and Tom Thumb/Kroger cards show as on) → land on Lists. Logout → protected URL redirects to login. Login with Google (mock).
+
+**Delivered (2026-11-16): `pnpm verify` green.** Endpoints: register, login, refresh, logout, `/auth/me`, Google start and callback, the mock consent page and form post, `PATCH /me`, `GET/PUT /me/stores`, `GET /stores` and `GET /stores/:slug/locations`. Notes and deviations:
+- **`GET /me/stores`** computes the §2.7 pre-selection on the server. Each store also carries `nearestLocation`, `preselected` and `saved`. Until the user saves, the defaults are: pre-selected stores enabled, loyalty cards on, memberships off.
+- **Sessions:**
+  - Every authenticated request also checks that the session family is not revoked, so logout takes effect at once instead of when the 15-minute access token expires.
+  - A rotated refresh token presented again within 10 s is treated as a multi-tab race: it gets a 401 but the family is not revoked. After 10 s, a replay revokes the whole family.
+- **Google:**
+  - The real client is OIDC + PKCE (S256) with nonce, issuer and audience checks. It is tested against a local fake issuer with RS256 keys; it has not been run against real Google.
+  - Unverified Google emails never link to or create an account.
+  - The mock consent form post is exempt from the CSRF header check, because it is a plain HTML form. It is protected by the signed, httpOnly OAuth-state cookie instead.
+- **ZIP → home:** 255 DFW ZIP Code Tabulation Area centroids (US Census, via the MIT-licensed `us-zips` package), bundled in `@sgs/core`. A ZIP outside DFW returns 422.
+- **New env var `AUTH_RATE_LIMIT_SCALE`** (default 1). It multiplies the auth rate limits so e2e can sign in many times from one IP. Startup fails if it isn't 1 in production. Production also refuses the mock Google login, the dev JWT secret and insecure cookies.
+- **Web forms** are plain controlled forms validated with the shared Zod schemas, not react-hook-form; adopt it later only if forms get complex. The theme is saved to the account when signed in, and the account's theme is applied at sign-in.
+- **Cross-user 404 is not testable yet.** No user-owned resource is addressable by id in Phase 2. Per-user isolation of store settings is tested. Real cross-user 404 tests arrive with lists in Phase 3.
+- **Open-question defaults applied:** Q-5 (JWT + rotating refresh) and Q-6 (no password reset or email verification in MVP).
 
 ### Phase 3: Grocery lists
 - List CRUD, items CRUD, reorder, check-off and category grouping.

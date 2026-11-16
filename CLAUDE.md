@@ -16,7 +16,7 @@ Read `SPEC.md` before any work. It is the source of truth for scope, data model,
 | Layer | Choice |
 |---|---|
 | Runtime | Node 22 LTS, pnpm 10 workspaces (`packageManager` pinned), TypeScript 5.9 `strict`, ESM everywhere |
-| Web | React 19, Vite 8, Tailwind CSS 4 (class-based dark mode via `@custom-variant`), React Router, TanStack Query, react-hook-form + Zod, Recharts |
+| Web | React 19, Vite 8, Tailwind CSS 4 (class-based dark mode via `@custom-variant`), React Router, TanStack Query, controlled forms validated with the shared Zod schemas, Recharts |
 | API | Express 5, Zod validation, pino logging (redaction on), helmet, express-rate-limit, node-cron |
 | DB | PostgreSQL 17 (docker-compose), **Drizzle ORM** + drizzle-kit migrations (custom SQL for functions/trigger/exclusion) |
 | Auth | argon2id (`@node-rs/argon2`), JWT access cookie + rotating opaque refresh cookie, Google OIDC (PKCE) with mock mode |
@@ -123,7 +123,9 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRET`, `COOKIE_SECURE`, `WEB_ORIGIN`, `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `AUTH_GOOGLE_MODE=mock|real`, `PRICE_PROVIDER=mock`, `SEED`,
 `SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`, `PRESELECT_RADIUS_MILES=7`,
-`DEFAULT_ORIGIN=33.1500,-96.8065` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only).
+`DEFAULT_ORIGIN=33.1500,-96.8065` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only),
+`AUTH_RATE_LIMIT_SCALE=1` (multiplies auth rate limits; e2e uses 50; must be 1 in production). Demo login:
+`demo@sgs.test` / `demo-password-123` (seeded by `pnpm db:seed`).
 Missing Google credentials ⇒ mock mode automatically; the API refuses to start with `AUTH_GOOGLE_MODE=mock` when
 `NODE_ENV=production`.
 

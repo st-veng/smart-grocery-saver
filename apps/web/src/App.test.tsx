@@ -1,37 +1,7 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { routes } from './App';
-
-const READY = {
-  status: 'ready',
-  checks: {
-    database: { ok: true },
-    migrations: { ok: true, applied: 1 },
-    provider: { ok: true, id: 'mock' },
-  },
-  priceProvider: 'mock',
-  metro: 'DFW',
-};
-
-function renderAt(path = '/') {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  return render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
-}
-
-function mockFetch(status: number, body: unknown) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() => Promise.resolve(new Response(JSON.stringify(body), { status }))),
-  );
-}
+import { mockApi, READY, renderAt, signedIn, USER } from './test-utils';
 
 beforeEach(() => {
   vi.stubGlobal('matchMedia', () => ({
@@ -44,41 +14,47 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('App shell', () => {
-  it('shows API ok and the demo-prices banner when the mock provider is ready', async () => {
-    mockFetch(200, READY);
-    renderAt();
+describe('App shell (signed in)', () => {
+  it('shows API ok, the greeting and the demo-prices banner', async () => {
+    mockApi(signedIn());
+    renderAt('/');
     expect(await screen.findByText('API: ok')).toBeInTheDocument();
+    expect(screen.getByText('Hi, Pat!')).toBeInTheDocument();
     expect(screen.getByRole('note', { name: 'Demo prices' })).toHaveTextContent(
       'not real store prices',
     );
-    expect(screen.getByRole('heading', { level: 1, name: 'My Lists' })).toBeInTheDocument();
   });
 
   it('shows not-ready when the API reports 503', async () => {
-    mockFetch(503, {
-      ...READY,
-      status: 'not_ready',
-      checks: { ...READY.checks, database: { ok: false, detail: 'down' } },
+    mockApi({
+      ...signedIn(),
+      'GET /health/ready': {
+        status: 503,
+        body: {
+          ...READY,
+          status: 'not_ready',
+          checks: { ...READY.checks, database: { ok: false, detail: 'down' } },
+        },
+      },
     });
-    renderAt();
+    renderAt('/');
     expect(await screen.findByText('API: not ready')).toBeInTheDocument();
   });
 
-  it('shows an alert with retry when the API is unreachable', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
-    );
-    renderAt();
+  it('shows an alert with retry when the health check fails', async () => {
+    mockApi({
+      ...signedIn(),
+      'GET /health/ready': { status: 500, body: { error: { code: 'INTERNAL', message: 'x' } } },
+    });
+    renderAt('/');
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('API: unreachable');
     expect(within(alert).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
   it('dismisses the demo banner for the session', async () => {
-    mockFetch(200, READY);
-    renderAt();
+    mockApi(signedIn());
+    renderAt('/');
     await userEvent.click(
       await screen.findByRole('button', { name: 'Dismiss demo prices notice' }),
     );
@@ -86,21 +62,25 @@ describe('App shell', () => {
     expect(sessionStorage.getItem('sgs-demo-banner-dismissed')).toBe('1');
   });
 
-  it('theme toggle cycles and applies dark mode', async () => {
-    mockFetch(200, READY);
-    renderAt();
-    const toggle = screen.getByRole('button', { name: /Theme: System/ });
-    await userEvent.click(toggle);
-    expect(screen.getByRole('button', { name: /Theme: Light/ })).toBeInTheDocument();
+  it('theme toggle cycles, applies dark mode and saves it to the account', async () => {
+    const calls = mockApi({
+      ...signedIn(),
+      'PATCH /me': (c) => ({ status: 200, body: { user: { ...USER, ...(c.body as object) } } }),
+    });
+    renderAt('/');
+    await userEvent.click(await screen.findByRole('button', { name: /Theme: System/ }));
     await userEvent.click(screen.getByRole('button', { name: /Theme: Light/ }));
     expect(document.documentElement).toHaveClass('dark');
     expect(localStorage.getItem('sgs-theme')).toBe('dark');
+    const patches = calls.filter((c) => c.method === 'PATCH');
+    expect(patches.map((c) => c.body)).toEqual([{ theme: 'light' }, { theme: 'dark' }]);
+    expect(patches[0]?.headers.get('X-Requested-With')).toBe('sgs');
   });
 
   it('navigates to placeholder pages via the primary nav', async () => {
-    mockFetch(200, READY);
-    renderAt();
-    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    mockApi(signedIn());
+    renderAt('/');
+    const nav = await screen.findByRole('navigation', { name: 'Primary' });
     await userEvent.click(within(nav).getByRole('link', { name: /Compare/ }));
     expect(screen.getByRole('heading', { level: 1, name: 'Compare' })).toBeInTheDocument();
     expect(screen.getByText('Coming in Phase 4.')).toBeInTheDocument();

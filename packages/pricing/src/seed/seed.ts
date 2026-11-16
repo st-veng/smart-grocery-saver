@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 import { fullSync, type SyncSummary } from '../ingest/ingest.js';
 import { MockPriceProvider } from '../mock/mock-provider.js';
 import { seedCatalog } from './catalog-seed.js';
+import { DEFAULT_DEMO_PASSWORD, seedDemoUser } from './demo-user.js';
 
 export const HISTORY_DAYS = 365;
 export const DEFAULT_SEED = '20261116';
@@ -12,6 +13,9 @@ export interface SeedOptions {
   readonly url: string;
   readonly seed?: string;
   readonly anchorDate?: IsoDate;
+  /** Seed the dev/e2e demo user (default true). */
+  readonly demoUser?: boolean;
+  readonly demoPassword?: string;
   readonly log?: (msg: string) => void;
 }
 
@@ -67,6 +71,14 @@ export async function seedDatabase(opts: SeedOptions): Promise<SeedResult> {
       days: HISTORY_DAYS,
       log,
     });
+    if (opts.demoUser ?? true) {
+      const demo = await seedDemoUser(
+        db,
+        opts.demoPassword ?? DEFAULT_DEMO_PASSWORD,
+        new Date(`${anchorDate}T12:00:00Z`),
+      );
+      log(`demo user: ${demo.email}`);
+    }
     return { ...sync, ...catalog, anchorDate, seed, ms: Date.now() - started };
   } finally {
     await handle.close();

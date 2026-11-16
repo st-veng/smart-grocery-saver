@@ -1,15 +1,11 @@
-import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
-
-async function expectNoSeriousA11yViolations(page: Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical',
-  );
-  expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
-}
+import { expect, test } from '@playwright/test';
+import { expectNoSeriousA11yViolations, signInAsDemo } from './helpers';
 
 test.describe('app shell (Phase 1)', () => {
+  test.beforeEach(async ({ page }) => {
+    await signInAsDemo(page);
+  });
+
   test('loads, shows API ok from the real API, and the demo-prices banner', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'My Lists' })).toBeVisible();

@@ -176,6 +176,34 @@ describe('seed', () => {
   });
 });
 
+describe('demo user (SPEC Phase 2)', () => {
+  it('is onboarded at Main & Preston with Costco membership, no Sam’s, loyalty cards on, Kroger as usual store', async () => {
+    const r = await rows<{
+      slug: string;
+      enabled: boolean;
+      has_membership: boolean;
+      has_loyalty: boolean;
+      baseline: string;
+      lat: string;
+      onboarded: boolean;
+    }>(sql`
+      SELECT s.slug, us.enabled, us.has_membership, us.has_loyalty, b.slug AS baseline, u.home_lat::text AS lat,
+             u.onboarded_at IS NOT NULL AS onboarded
+      FROM users u JOIN user_stores us ON us.user_id = u.id JOIN stores s ON s.id = us.store_id
+      JOIN stores b ON b.id = u.baseline_store_id
+      WHERE u.email = 'demo@sgs.test' ORDER BY s.slug`);
+    expect(r).toHaveLength(10);
+    const by = (slug: string) => r.find((x) => x.slug === slug);
+    expect(r[0]).toMatchObject({ baseline: 'kroger', onboarded: true });
+    expect(Number(r[0]?.lat)).toBeCloseTo(33.15, 6);
+    expect(by('costco')).toMatchObject({ has_membership: true, enabled: true });
+    expect(by('sams')?.has_membership).toBe(false);
+    expect(by('kroger')?.has_loyalty).toBe(true);
+    expect(by('tomthumb')?.has_loyalty).toBe(true);
+    expect(by('traderjoes')?.enabled).toBe(false);
+  });
+});
+
 describe('ingestion correctness against provider ground truth', () => {
   const provider = new MockPriceProvider({ seed: SEED, anchorDate: ANCHOR });
 

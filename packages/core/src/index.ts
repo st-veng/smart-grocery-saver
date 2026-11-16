@@ -7,3 +7,5 @@ export * from './pricing/cover-cost.js';
 export * from './geo.js';
 export * from './dates.js';
 export * from './random.js';
+export * from './zip.js';
+export * from './auth-params.js';

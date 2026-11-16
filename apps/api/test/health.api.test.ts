@@ -1,30 +1,28 @@
-import { createTestDatabase } from '@sgs/db/testing';
-import { MockPriceProvider, type PriceProvider } from '@sgs/pricing';
+import { type PriceProvider } from '@sgs/pricing';
 import { ErrorResponse, HealthResponse, ReadyResponse } from '@sgs/shared';
 import { pino } from 'pino';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp, type AppDeps, type Queryable } from '../src/app.js';
+import { type Queryable } from '../src/app.js';
+import {
+  buildApp,
+  provider,
+  setupDb,
+  TestClock,
+  type AppOverrides,
+  type TestDb,
+} from './helpers.js';
 
-type TestDb = Awaited<ReturnType<typeof createTestDatabase>>;
 let db: TestDb;
-const provider = new MockPriceProvider({ seed: '20261116', anchorDate: '2026-11-01' });
-const startedAt = new Date('2026-11-01T12:00:00Z');
 
-function app(overrides: Partial<AppDeps> = {}) {
-  return createApp({
-    pool: db.pool,
-    provider,
-    metro: 'DFW',
-    version: '0.1.0-test',
-    startedAt,
-    clock: () => new Date('2026-11-01T12:01:30Z'),
-    ...overrides,
-  });
+function app(overrides: AppOverrides = {}) {
+  const clock = new TestClock();
+  clock.now = new Date('2026-11-01T12:01:30Z');
+  return buildApp(db, { clock, ...overrides });
 }
 
 beforeAll(async () => {
-  db = await createTestDatabase('api');
+  db = await setupDb('api_health');
 });
 afterAll(async () => {
   await db.close();

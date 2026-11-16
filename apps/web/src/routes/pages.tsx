@@ -1,14 +1,19 @@
 import { HealthStatus } from '../components/HealthStatus';
+import { useMe } from '../lib/auth';
 
 const card =
   'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
 export function HomePage() {
+  const me = useMe();
   return (
     <section aria-labelledby="home-title" className="space-y-4">
       <h1 id="home-title" className="text-2xl font-bold tracking-tight">
         My Lists
       </h1>
+      {me.data ? (
+        <p className="text-slate-700 dark:text-slate-300">Hi, {me.data.displayName}!</p>
+      ) : null}
       <div className={card}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
           System status

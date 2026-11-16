@@ -29,6 +29,9 @@ export default defineConfig({
         SEED_ANCHOR_DATE: E2E_ANCHOR,
         LOG_LEVEL: 'warn',
         NODE_ENV: 'test',
+        WEB_ORIGIN: `http://localhost:${String(WEB_PORT)}`,
+        AUTH_GOOGLE_MODE: 'mock',
+        AUTH_RATE_LIMIT_SCALE: '50',
       },
     },
     {

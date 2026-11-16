@@ -6,6 +6,7 @@ const result = await seedDatabase({
   url: databaseUrl(),
   seed: process.env.SEED || undefined,
   anchorDate: process.env.SEED_ANCHOR_DATE || undefined,
+  demoPassword: process.env.DEMO_USER_PASSWORD || undefined,
   log: (m) => {
     console.log(m);
   },
