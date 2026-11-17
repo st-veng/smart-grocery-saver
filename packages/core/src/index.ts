@@ -11,3 +11,4 @@ export * from './zip.js';
 export * from './auth-params.js';
 export * from './lists/parse-line.js';
 export * from './lists/csv.js';
+export * from './pricing/compare.js';

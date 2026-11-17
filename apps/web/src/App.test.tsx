@@ -81,8 +81,8 @@ describe('App shell (signed in)', () => {
     mockApi(signedIn());
     renderAt('/');
     const nav = await screen.findByRole('navigation', { name: 'Primary' });
-    await userEvent.click(within(nav).getByRole('link', { name: /Compare/ }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Compare' })).toBeInTheDocument();
-    expect(screen.getByText('Coming in Phase 4.')).toBeInTheDocument();
+    await userEvent.click(within(nav).getByRole('link', { name: /Deals/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Deals & History' })).toBeInTheDocument();
+    expect(screen.getByText('Coming in Phase 5.')).toBeInTheDocument();
   });
 });

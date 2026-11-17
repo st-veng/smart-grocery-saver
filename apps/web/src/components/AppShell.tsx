@@ -20,7 +20,8 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const listsArea = /^\/(lists|templates|import)(\/|$)/.test(pathname);
+  const compareArea = /^\/(lists\/[^/]+\/compare|products\/)/.test(pathname);
+  const listsArea = !compareArea && /^\/(lists|templates|import)(\/|$)/.test(pathname);
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -53,9 +54,18 @@ export function AppShell() {
                   to={n.to}
                   end={n.end}
                   className={({ isActive }) =>
-                    linkClass({ isActive: isActive || (n.to === '/' && listsArea) })
+                    linkClass({
+                      isActive:
+                        isActive ||
+                        (n.to === '/' && listsArea) ||
+                        (n.to === '/compare' && compareArea),
+                    })
                   }
-                  aria-current={n.to === '/' && listsArea ? 'page' : undefined}
+                  aria-current={
+                    (n.to === '/' && listsArea) || (n.to === '/compare' && compareArea)
+                      ? 'page'
+                      : undefined
+                  }
                 >
                   <span aria-hidden="true" className="text-lg leading-none md:text-base">
                     {n.icon}

@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 7: Phases 1–3 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 8: Phases 1–4 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -574,6 +574,30 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Savings % is in [−∞, 100).
 3. API: golden-file comparison for the family fixture at a pinned `asOf`. p95 < 300 ms over 50 runs.
 4. Playwright: list → Compare shows the cheapest store with a star icon and text (not colour only). Percentages match the API. Toggling a store off recomputes. For the demo profile, Costco appears as a normal column and Sam's Club does not appear.
+
+**Delivered (2026-11-17): `pnpm verify` green.** Notes and deviations:
+- **Engine:** `compareList` in `@sgs/core` is pure. The API loads each offer's price period at `asOf` in one query (`valid_during @> asOf`), and `asOf` defaults to today in America/Chicago. Family-week latency is p50 11 ms and p95 15 ms against the 300 ms target.
+- **Eligibility:**
+  - Disabled stores and clubs without a membership are omitted from comparisons (Q-3) and listed under `excluded` with a reason.
+  - `?stores=` narrows the comparison further. Every eligible store stays listed under `available`, so the UI can toggle it back on.
+- **Member and loyalty prices:**
+  - A user who doesn't qualify for a member-only price pays the regular price.
+  - A multi-buy deal counts only when the packages bought reach its minimum; below that, the sale and card flags show what was actually paid.
+- **Cheapest and baseline:**
+  - "Cheapest" is the cheapest store that carries every priced item. Ties go to display order.
+  - `cheapestWithMissingStoreId` is the store with the fewest missing items, then the lowest total.
+  - The baseline is the user's usual store when it is complete; otherwise the median-priced complete store (Q-2).
+  - Savings % are rounded to one decimal and are null when not comparable.
+- **Golden file:** `apps/api/test/__golden__/family-week-comparison.json`, demo profile, seed 20261116, asOf 2026-11-01. Golden files are excluded from Prettier.
+  - Walmart is the cheapest single store: $173.23, saving $14.61 (7.8%) vs Kroger at $187.84.
+  - Aldi and Sprouts are cheaper on what they carry but are missing 10 and 12 items, so they are never "cheapest".
+  - The 10–25% band in §2.6 is for a plan of up to 3 stores (Phase 7).
+- **`GET /products/:id/offers`** returns current offers only (sign-in required). The historic-low badge moves to Phase 5 along with history.
+- **New screens:**
+  - `/compare` (list picker).
+  - `/lists/:id/compare` (S6).
+  - `/products/:id` (S7, current offers only).
+  - A "Compare prices" button on the list page.
 
 ### Phase 5: Price history & alerts
 - History endpoints (step series), and charts with 30/90/365 toggles, per-store lines and the historic-low marker.

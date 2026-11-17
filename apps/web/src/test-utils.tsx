@@ -67,6 +67,8 @@ export interface Call {
   readonly path: string;
   readonly body: unknown;
   readonly headers: Headers;
+  /** Full request URL including the query string. */
+  readonly url: string;
 }
 
 type Handler = (call: Call) => { status: number; body?: unknown } | undefined;
@@ -80,7 +82,7 @@ export function mockApi(handlers: Record<string, Handler | { status: number; bod
       const method = init?.method ?? 'GET';
       const path = input.replace(/^\/api\/v1/, '').split('?')[0] ?? '';
       const body: unknown = typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
-      const call = { method, path, body, headers: new Headers(init?.headers) };
+      const call = { method, path, url: input, body, headers: new Headers(init?.headers) };
       calls.push(call);
       const h = handlers[`${method} ${path}`];
       const r = typeof h === 'function' ? h(call) : h;

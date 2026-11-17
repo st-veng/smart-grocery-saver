@@ -45,3 +45,20 @@ export function formatQuantity(i: Pick<ListItem, 'quantity' | 'unit' | 'product'
   }
   return i.quantity === 1 ? '' : `×${formatNumber(i.quantity)}`;
 }
+
+export function formatMoney(cents: number): string {
+  const sign = cents < 0 ? '-' : '';
+  const abs = Math.abs(cents);
+  return `${sign}$${Math.floor(abs / 100).toLocaleString('en-US')}.${String(abs % 100).padStart(2, '0')}`;
+}
+
+/** 2.3¢/fl oz below a dollar, $4.99/lb above. */
+export function formatUnitPrice(cents: number, unit: Unit): string {
+  const per = UNIT_LABEL[unit];
+  if (cents < 100) return `${(Math.round(cents * 10) / 10).toFixed(1)}¢/${per}`;
+  return `$${(cents / 100).toFixed(2)}/${per}`;
+}
+
+export function formatPct(p: number): string {
+  return `${(Math.round(Math.abs(p) * 10) / 10).toFixed(1)}%`;
+}

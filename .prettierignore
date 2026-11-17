@@ -6,3 +6,4 @@ pnpm-lock.yaml
 packages/db/migrations
 *.md
 docs/schema.sql
+**/__golden__

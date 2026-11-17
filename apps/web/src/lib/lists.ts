@@ -1,5 +1,7 @@
 import {
+  ComparisonResponse,
   ImportPreviewResponse,
+  ProductOffersResponse,
   ItemResponse,
   ListResponse,
   ListsResponse,
@@ -166,3 +168,21 @@ export const useImportCommit = () =>
   useListMutation((v: ImportCommitRequest) =>
     api('POST', '/imports/commit', ListResponse, v).then((r) => r.list),
   );
+
+export function useComparison(listId: string, storeIds: readonly number[] | null) {
+  const q = storeIds ? `?stores=${storeIds.join(',')}` : '';
+  return useQuery({
+    queryKey: ['comparison', listId, storeIds?.join(',') ?? 'all'],
+    queryFn: ({ signal }) =>
+      api('GET', `/lists/${listId}/comparison${q}`, ComparisonResponse, undefined, { signal }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useProductOffers(productId: string) {
+  return useQuery({
+    queryKey: ['offers', productId],
+    queryFn: ({ signal }) =>
+      api('GET', `/products/${productId}/offers`, ProductOffersResponse, undefined, { signal }),
+  });
+}

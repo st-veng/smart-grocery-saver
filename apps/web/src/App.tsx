@@ -5,7 +5,9 @@ import { AppShell } from './components/AppShell';
 import { RedirectIfSignedIn, RequireSignedIn, RequireUser } from './components/Guards';
 import { LoginPage, RegisterPage } from './routes/auth-pages';
 import { OnboardingPage } from './routes/onboarding';
+import { ComparePickerPage, CompareListPage } from './routes/compare';
 import { ImportPage } from './routes/import';
+import { ProductPage } from './routes/product';
 import { ListDetailPage } from './routes/list-detail';
 import { ListsPage, TemplatesPage } from './routes/lists-pages';
 import { NotFoundPage, PlaceholderPage } from './routes/pages';
@@ -49,7 +51,9 @@ export const routes: RouteObject[] = [
       { path: 'lists/:id/import', element: <ImportPage /> },
       { path: 'import', element: <ImportPage /> },
       { path: 'templates', element: <TemplatesPage /> },
-      { path: 'compare', element: <PlaceholderPage title="Compare" phase={4} /> },
+      { path: 'compare', element: <ComparePickerPage /> },
+      { path: 'lists/:id/compare', element: <CompareListPage /> },
+      { path: 'products/:id', element: <ProductPage /> },
       { path: 'deals', element: <PlaceholderPage title="Deals & History" phase={5} /> },
       { path: 'dashboard', element: <PlaceholderPage title="Savings Dashboard" phase={6} /> },
       { path: 'settings', element: <SettingsPage /> },

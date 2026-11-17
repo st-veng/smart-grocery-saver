@@ -8,6 +8,8 @@ import {
   UpdateItemRequest,
   UpdateListRequest,
   type CategoriesResponse,
+  type ComparisonResponse,
+  type ProductOffersResponse,
   type ImportPreviewResponse,
   type ItemResponse,
   type ListResponse,
@@ -20,7 +22,9 @@ import { Router, type Request } from 'express';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { auth, requireAuth } from '../auth/middleware.js';
+import { isIsoDate, todayIn } from '@sgs/core';
 import { getProduct, listCategories, searchProducts } from '../services/catalog.js';
+import { compareListForUser, productOffersForUser } from '../services/compare.js';
 import { commitImport, previewImport } from '../services/imports.js';
 import {
   addItem,
@@ -83,7 +87,50 @@ export function catalogRouter(deps: AppDeps): Router {
 export function listsRouter(deps: AppDeps): Router {
   const r = Router();
   const { db } = deps;
-  r.use(['/lists', '/templates', '/imports'], requireAuth(db, deps.tokens));
+  const guard = requireAuth(db, deps.tokens);
+  r.use(['/lists', '/templates', '/imports'], guard);
+
+  const CompareQuery = z.object({
+    asOf: z.string().refine(isIsoDate, 'asOf must be YYYY-MM-DD').optional(),
+    stores: z
+      .string()
+      .regex(/^\d+(,\d+)*$/, 'stores must be comma-separated store ids')
+      .transform((v) => v.split(',').map(Number))
+      .optional(),
+  });
+  /** Prices are calendar dates in America/Chicago (SPEC A-7). */
+  const today = () => todayIn('America/Chicago', deps.clock());
+
+  r.get('/lists/:id/comparison', async (req, res) => {
+    const q = parse(CompareQuery, req.query);
+    const body: ComparisonResponse = await compareListForUser(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      {
+        asOf: q.asOf ?? today(),
+        storeIds: q.stores,
+        radiusMiles: deps.config.preselectRadiusMiles,
+        metro: deps.metro,
+      },
+    );
+    res.json(body);
+  });
+
+  r.get('/products/:id/offers', guard, async (req, res) => {
+    const q = parse(CompareQuery.pick({ asOf: true }), req.query);
+    const body: ProductOffersResponse = await productOffersForUser(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      {
+        asOf: q.asOf ?? today(),
+        radiusMiles: deps.config.preselectRadiusMiles,
+        metro: deps.metro,
+      },
+    );
+    res.json(body);
+  });
   const now = () => deps.clock();
 
   const sendList = async (

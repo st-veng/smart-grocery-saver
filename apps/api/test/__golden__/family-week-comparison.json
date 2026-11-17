@@ -1,0 +1,692 @@
+{
+  "asOf": "2026-11-01",
+  "cheapest": "walmart",
+  "baseline": {
+    "storeId": "kroger",
+    "source": "user",
+    "totalCents": 18784
+  },
+  "savingsPct": 7.8,
+  "savingsCents": 1461,
+  "excluded": [
+    "sams:no_membership",
+    "traderjoes:disabled"
+  ],
+  "totals": [
+    {
+      "storeId": "walmart",
+      "totalCents": 17323,
+      "pricedCount": 35,
+      "missingCount": 0,
+      "complete": true,
+      "savingsCents": 1461,
+      "savingsPct": 7.8
+    },
+    {
+      "storeId": "costco",
+      "totalCents": 30745,
+      "pricedCount": 29,
+      "missingCount": 6,
+      "complete": false,
+      "savingsCents": null,
+      "savingsPct": null
+    },
+    {
+      "storeId": "target",
+      "totalCents": 20836,
+      "pricedCount": 35,
+      "missingCount": 0,
+      "complete": true,
+      "savingsCents": -2052,
+      "savingsPct": -10.9
+    },
+    {
+      "storeId": "kroger",
+      "totalCents": 18784,
+      "pricedCount": 35,
+      "missingCount": 0,
+      "complete": true,
+      "savingsCents": 0,
+      "savingsPct": 0
+    },
+    {
+      "storeId": "heb",
+      "totalCents": 17945,
+      "pricedCount": 35,
+      "missingCount": 0,
+      "complete": true,
+      "savingsCents": 839,
+      "savingsPct": 4.5
+    },
+    {
+      "storeId": "aldi",
+      "totalCents": 12711,
+      "pricedCount": 25,
+      "missingCount": 10,
+      "complete": false,
+      "savingsCents": null,
+      "savingsPct": null
+    },
+    {
+      "storeId": "tomthumb",
+      "totalCents": 20334,
+      "pricedCount": 35,
+      "missingCount": 0,
+      "complete": true,
+      "savingsCents": -1550,
+      "savingsPct": -8.3
+    },
+    {
+      "storeId": "sprouts",
+      "totalCents": 13885,
+      "pricedCount": 23,
+      "missingCount": 12,
+      "complete": false,
+      "savingsCents": null,
+      "savingsPct": null
+    }
+  ],
+  "lines": [
+    {
+      "product": "whole-milk",
+      "need": 256,
+      "cheapest": [
+        "kroger"
+      ],
+      "stores": {
+        "walmart": "Great Value Whole Milk, 1 gal | 2 | 658¢ | 2.57¢/fl_oz",
+        "costco": "missing",
+        "target": "Whole Milk - 1 GAL - up&up™ | 2 | 838¢ | 3.27¢/fl_oz",
+        "kroger": "Simple Truth® Whole Milk - 1 Gallon | 2 | 598¢ | 2.34¢/fl_oz | 2 for $5.98",
+        "heb": "H-E-B Whole Milk 1 gal | 2 | 738¢ | 2.88¢/fl_oz",
+        "aldi": "Clancy’s Whole Milk, 1 gal | 2 | 658¢ | 2.57¢/fl_oz",
+        "tomthumb": "Signature SELECT® Whole Milk - 1 Gallon | 2 | 858¢ | 3.35¢/fl_oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "large-eggs",
+      "need": 18,
+      "cheapest": [
+        "heb",
+        "sprouts"
+      ],
+      "stores": {
+        "walmart": "Great Value Large Grade A Eggs, 12 ct | 2 | 538¢ | 22.42¢/ea",
+        "costco": "Eggland's Best Large Grade A Eggs 60 count | 1 | 1489¢ | 24.82¢/ea",
+        "target": "Large Grade A Eggs - 18 CT - Eggland's Best™ | 1 | 569¢ | 31.61¢/ea",
+        "kroger": "Eggland's Best® Large Grade A Eggs - 18 Count | 1 | 559¢ | 31.06¢/ea",
+        "heb": "H-E-B Large Grade A Eggs 18 count | 1 | 399¢ | 22.17¢/ea",
+        "aldi": "Millville Large Grade A Eggs, 12 ct | 2 | 498¢ | 20.75¢/ea",
+        "tomthumb": "Eggland's Best® Large Grade A Eggs - 12 Count | 2 | 598¢ | 24.92¢/ea | for U price",
+        "sprouts": "Large Grade A Eggs - 18 CT - Eggland's Best™ | 1 | 399¢ | 22.17¢/ea | Weekly ad"
+      }
+    },
+    {
+      "product": "bananas",
+      "need": 3,
+      "cheapest": [
+        "walmart",
+        "heb"
+      ],
+      "stores": {
+        "walmart": "Bananas, per lb | by wt | 147¢ | 49.00¢/lb",
+        "costco": "missing",
+        "target": "Bananas - Price per pound | by wt | 177¢ | 59.00¢/lb",
+        "kroger": "Bananas - $/lb | by wt | 177¢ | 59.00¢/lb",
+        "heb": "Bananas sold by the lb | by wt | 147¢ | 49.00¢/lb",
+        "aldi": "missing",
+        "tomthumb": "Bananas - $/lb | by wt | 207¢ | 69.00¢/lb",
+        "sprouts": "Bananas - Price per pound | by wt | 177¢ | 59.00¢/lb"
+      }
+    },
+    {
+      "product": "gala-apples",
+      "need": 3,
+      "cheapest": [
+        "walmart",
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Gala Apples, per lb | by wt | 387¢ | 129.00¢/lb",
+        "costco": "missing",
+        "target": "Gala Apples - Price per pound | by wt | 507¢ | 169.00¢/lb",
+        "kroger": "Gala Apples - $/lb | by wt | 447¢ | 149.00¢/lb",
+        "heb": "Gala Apples sold by the lb | by wt | 447¢ | 149.00¢/lb",
+        "aldi": "Gala Apples, per lb | by wt | 387¢ | 129.00¢/lb",
+        "tomthumb": "Gala Apples - $/lb | by wt | 507¢ | 169.00¢/lb",
+        "sprouts": "Gala Apples - Price per pound | by wt | 417¢ | 139.00¢/lb"
+      }
+    },
+    {
+      "product": "strawberries",
+      "need": 1,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Strawberries, 16 oz | 1 | 399¢ | 399.00¢/lb",
+        "costco": "Strawberries 2 lbs | 1 | 619¢ | 309.50¢/lb | Member savings",
+        "target": "Strawberries - 16 OZ | 1 | 399¢ | 399.00¢/lb | Circle deal",
+        "kroger": "Strawberries - 16 Ounce | 1 | 449¢ | 449.00¢/lb",
+        "heb": "Strawberries 16 oz | 1 | 419¢ | 419.00¢/lb",
+        "aldi": "Strawberries, 16 oz | 1 | 369¢ | 369.00¢/lb",
+        "tomthumb": "Strawberries - 16 Ounce | 1 | 329¢ | 329.00¢/lb | for U price",
+        "sprouts": "Strawberries - 16 OZ | 1 | 419¢ | 419.00¢/lb"
+      }
+    },
+    {
+      "product": "avocados",
+      "need": 4,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Hass Avocados, 1 ct | 4 | 556¢ | 139.00¢/ea",
+        "costco": "missing",
+        "target": "Hass Avocados - 1 CT | 4 | 676¢ | 169.00¢/ea",
+        "kroger": "Hass Avocados - 1 Count | 4 | 596¢ | 149.00¢/ea",
+        "heb": "Hass Avocados 1 count | 4 | 556¢ | 139.00¢/ea",
+        "aldi": "Hass Avocados, 1 ct | 4 | 476¢ | 119.00¢/ea",
+        "tomthumb": "Hass Avocados - 1 Count | 4 | 676¢ | 169.00¢/ea",
+        "sprouts": "Hass Avocados - 1 CT | 4 | 516¢ | 129.00¢/ea"
+      }
+    },
+    {
+      "product": "roma-tomatoes",
+      "need": 2,
+      "cheapest": [
+        "walmart",
+        "target",
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Roma Tomatoes, per lb | by wt | 218¢ | 109.00¢/lb",
+        "costco": "Roma Tomatoes 4 lbs | 1 | 399¢ | 99.75¢/lb",
+        "target": "Roma Tomatoes - Price per pound | by wt | 218¢ | 109.00¢/lb | Circle deal",
+        "kroger": "Roma Tomatoes - $/lb | by wt | 258¢ | 129.00¢/lb",
+        "heb": "Roma Tomatoes sold by the lb | by wt | 238¢ | 119.00¢/lb",
+        "aldi": "Roma Tomatoes, per lb | by wt | 218¢ | 109.00¢/lb",
+        "tomthumb": "Roma Tomatoes - $/lb | by wt | 278¢ | 139.00¢/lb",
+        "sprouts": "Roma Tomatoes - Price per pound | by wt | 238¢ | 119.00¢/lb"
+      }
+    },
+    {
+      "product": "yellow-onions",
+      "need": 3,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Yellow Onions, 3 lb | 2 | 598¢ | 99.67¢/lb",
+        "costco": "missing",
+        "target": "Yellow Onions - 3 LB | 2 | 738¢ | 123.00¢/lb",
+        "kroger": "Yellow Onions - 3 Pound | 2 | 698¢ | 116.33¢/lb",
+        "heb": "Yellow Onions 3 lbs | 2 | 658¢ | 109.67¢/lb",
+        "aldi": "Yellow Onions, 3 lb | 2 | 578¢ | 96.33¢/lb",
+        "tomthumb": "Yellow Onions - 3 Pound | 2 | 758¢ | 126.33¢/lb",
+        "sprouts": "Yellow Onions - 3 LB | 2 | 638¢ | 106.33¢/lb"
+      }
+    },
+    {
+      "product": "russet-potatoes",
+      "need": 5,
+      "cheapest": [
+        "kroger"
+      ],
+      "stores": {
+        "walmart": "Russet Potatoes, 5 lb | 1 | 349¢ | 69.80¢/lb",
+        "costco": "Russet Potatoes 15 lbs | 1 | 789¢ | 52.60¢/lb | Member savings",
+        "target": "Russet Potatoes - 5 LB | 1 | 419¢ | 83.80¢/lb",
+        "kroger": "Russet Potatoes - 5 Pound | 1 | 299¢ | 59.80¢/lb | Card price",
+        "heb": "Russet Potatoes 5 lbs | 1 | 369¢ | 73.80¢/lb",
+        "aldi": "missing",
+        "tomthumb": "Russet Potatoes - 5 Pound | 1 | 449¢ | 89.80¢/lb",
+        "sprouts": "Russet Potatoes - 5 LB | 1 | 359¢ | 71.80¢/lb"
+      }
+    },
+    {
+      "product": "romaine",
+      "need": 3,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Romaine Hearts, 3 ct | 1 | 359¢ | 119.67¢/ea",
+        "costco": "Romaine Hearts 6 count | 1 | 629¢ | 104.83¢/ea",
+        "target": "Romaine Hearts - 3 CT | 1 | 429¢ | 143.00¢/ea",
+        "kroger": "Romaine Hearts - 3 Count | 1 | 399¢ | 133.00¢/ea",
+        "heb": "Romaine Hearts 3 count | 1 | 359¢ | 119.67¢/ea",
+        "aldi": "Romaine Hearts, 3 ct | 1 | 329¢ | 109.67¢/ea",
+        "tomthumb": "Romaine Hearts - 3 Count | 1 | 429¢ | 143.00¢/ea",
+        "sprouts": "Romaine Hearts - 3 CT | 1 | 359¢ | 119.67¢/ea"
+      }
+    },
+    {
+      "product": "ground-beef-80",
+      "need": 3,
+      "cheapest": [
+        "walmart"
+      ],
+      "stores": {
+        "walmart": "80/20 Ground Beef, per lb | by wt | 1167¢ | 389.00¢/lb | Rollback",
+        "costco": "80/20 Ground Beef sold by the lb | by wt | 1257¢ | 419.00¢/lb",
+        "target": "80/20 Ground Beef - Price per pound | by wt | 1587¢ | 529.00¢/lb",
+        "kroger": "80/20 Ground Beef - $/lb | by wt | 1467¢ | 489.00¢/lb",
+        "heb": "80/20 Ground Beef sold by the lb | by wt | 1347¢ | 449.00¢/lb",
+        "aldi": "80/20 Ground Beef, per lb | by wt | 1257¢ | 419.00¢/lb",
+        "tomthumb": "80/20 Ground Beef - $/lb | by wt | 1677¢ | 559.00¢/lb",
+        "sprouts": "80/20 Ground Beef - Price per pound | by wt | 1647¢ | 549.00¢/lb"
+      }
+    },
+    {
+      "product": "chicken-breast",
+      "need": 4,
+      "cheapest": [
+        "kroger"
+      ],
+      "stores": {
+        "walmart": "Boneless Skinless Chicken Breasts, per lb | by wt | 1276¢ | 319.00¢/lb",
+        "costco": "Boneless Skinless Chicken Breasts sold by the lb | by wt | 1116¢ | 279.00¢/lb",
+        "target": "Boneless Skinless Chicken Breasts - Price per pound | by wt | 1476¢ | 369.00¢/lb",
+        "kroger": "Boneless Skinless Chicken Breasts - $/lb | by wt | 876¢ | 219.00¢/lb | Card price",
+        "heb": "Boneless Skinless Chicken Breasts sold by the lb | by wt | 1036¢ | 259.00¢/lb | Weekly ad",
+        "aldi": "Boneless Skinless Chicken Breasts, per lb | by wt | 1196¢ | 299.00¢/lb",
+        "tomthumb": "Boneless Skinless Chicken Breasts - $/lb | by wt | 996¢ | 249.00¢/lb | Weekly ad",
+        "sprouts": "Boneless Skinless Chicken Breasts - Price per pound | by wt | 1476¢ | 369.00¢/lb"
+      }
+    },
+    {
+      "product": "bacon",
+      "need": 1,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Great Value Hickory Smoked Bacon, 16 oz | 1 | 519¢ | 519.00¢/lb",
+        "costco": "Oscar Mayer Hickory Smoked Bacon 16 oz, 3 pack | 1 | 1789¢ | 596.33¢/lb",
+        "target": "Hickory Smoked Bacon - 16 OZ - Market Pantry™ | 1 | 639¢ | 639.00¢/lb",
+        "kroger": "Simple Truth® Hickory Smoked Bacon - 16 Ounce | 1 | 589¢ | 589.00¢/lb",
+        "heb": "Hill Country Fare Hickory Smoked Bacon 16 oz | 1 | 569¢ | 569.00¢/lb",
+        "aldi": "Simply Nature Hickory Smoked Bacon, 16 oz | 1 | 509¢ | 509.00¢/lb",
+        "tomthumb": "O Organics® Hickory Smoked Bacon - 16 Ounce | 1 | 429¢ | 429.00¢/lb | for U price",
+        "sprouts": "Hickory Smoked Bacon - 16 OZ - Sprouts™ | 1 | 649¢ | 649.00¢/lb"
+      }
+    },
+    {
+      "product": "salted-butter",
+      "need": 16,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Salted Butter, 16 oz | 1 | 409¢ | 25.56¢/oz",
+        "costco": "Kirkland Signature Salted Butter 16 oz, 4 pack | 1 | 1469¢ | 22.95¢/oz",
+        "target": "Salted Butter - 16 OZ - Good & Gather™ | 1 | 469¢ | 29.31¢/oz",
+        "kroger": "Land O Lakes® Salted Butter - 16 Ounce | 1 | 419¢ | 26.19¢/oz | Card price",
+        "heb": "Hill Country Fare Salted Butter 16 oz | 1 | 409¢ | 25.56¢/oz",
+        "aldi": "Clancy’s Salted Butter, 16 oz | 1 | 379¢ | 23.69¢/oz",
+        "tomthumb": "O Organics® Salted Butter - 16 Ounce | 1 | 299¢ | 18.69¢/oz | Weekly ad",
+        "sprouts": "Salted Butter - 16 OZ - Sprouts™ | 1 | 479¢ | 29.94¢/oz"
+      }
+    },
+    {
+      "product": "shredded-cheddar",
+      "need": 16,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Great Value Shredded Cheddar Cheese, 8 oz | 2 | 378¢ | 23.63¢/oz | Rollback",
+        "costco": "Kirkland Signature Shredded Cheddar Cheese 2.5 lbs | 1 | 1009¢ | 25.23¢/oz",
+        "target": "Shredded Cheddar Cheese - 8 OZ - Market Pantry™ | 2 | 538¢ | 33.63¢/oz",
+        "kroger": "Simple Truth® Shredded Cheddar Cheese - 8 Ounce | 2 | 358¢ | 22.38¢/oz | Card price",
+        "heb": "H-E-B Shredded Cheddar Cheese 8 oz | 2 | 458¢ | 28.63¢/oz",
+        "aldi": "missing",
+        "tomthumb": "O Organics® Shredded Cheddar Cheese - 8 Ounce | 2 | 318¢ | 19.88¢/oz | for U price",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "white-bread",
+      "need": 40,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice White Sandwich Bread, 20 oz | 2 | 318¢ | 7.95¢/oz",
+        "costco": "Kirkland Signature White Sandwich Bread 20 oz, 2 pack | 2 | 598¢ | 7.47¢/oz",
+        "target": "White Sandwich Bread - 20 OZ - Good & Gather™ | 2 | 358¢ | 8.95¢/oz",
+        "kroger": "Kroger® White Sandwich Bread - 20 Ounce | 2 | 358¢ | 8.95¢/oz",
+        "heb": "Hill Country Fare White Sandwich Bread 20 oz | 2 | 318¢ | 7.95¢/oz",
+        "aldi": "Simply Nature White Sandwich Bread, 20 oz | 2 | 298¢ | 7.45¢/oz",
+        "tomthumb": "Signature SELECT® White Sandwich Bread - 20 Ounce | 2 | 398¢ | 9.95¢/oz",
+        "sprouts": "White Sandwich Bread - 20 OZ - Sprouts™ | 2 | 378¢ | 9.45¢/oz"
+      }
+    },
+    {
+      "product": "flour-tortillas",
+      "need": 20,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Flour Tortillas, 10 ct | 2 | 438¢ | 21.90¢/ea",
+        "costco": "Kirkland Signature Flour Tortillas 30 count | 1 | 599¢ | 19.97¢/ea",
+        "target": "Flour Tortillas - 20 CT - up&up™ | 1 | 429¢ | 21.45¢/ea | Circle deal",
+        "kroger": "Kroger® Flour Tortillas - 10 Count | 2 | 498¢ | 24.90¢/ea",
+        "heb": "Hill Country Fare Flour Tortillas 10 count | 2 | 458¢ | 22.90¢/ea",
+        "aldi": "Clancy’s Flour Tortillas, 10 ct | 2 | 398¢ | 19.90¢/ea",
+        "tomthumb": "O Organics® Flour Tortillas - 20 Count | 1 | 549¢ | 27.45¢/ea",
+        "sprouts": "Flour Tortillas - 10 CT - Sprouts™ | 2 | 538¢ | 26.90¢/ea"
+      }
+    },
+    {
+      "product": "peanut-butter",
+      "need": 16,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Creamy Peanut Butter, 16 oz | 1 | 199¢ | 12.44¢/oz",
+        "costco": "Kirkland Signature Creamy Peanut Butter 40 oz, 2 pack | 1 | 909¢ | 11.36¢/oz",
+        "target": "Creamy Peanut Butter - 16 OZ - Market Pantry™ | 1 | 239¢ | 14.94¢/oz",
+        "kroger": "Kroger® Creamy Peanut Butter - 16 Ounce | 1 | 229¢ | 14.31¢/oz",
+        "heb": "H-E-B Creamy Peanut Butter 16 oz | 1 | 209¢ | 13.06¢/oz",
+        "aldi": "Simply Nature Creamy Peanut Butter, 16 oz | 1 | 189¢ | 11.81¢/oz",
+        "tomthumb": "O Organics® Creamy Peanut Butter - 16 Ounce | 1 | 179¢ | 11.19¢/oz | for U price",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "diced-tomatoes",
+      "need": 29,
+      "cheapest": [
+        "walmart",
+        "heb"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Canned Diced Tomatoes, 14.5 oz | 2 | 178¢ | 6.14¢/oz",
+        "costco": "Kirkland Signature Canned Diced Tomatoes 14.5 oz, 8 pack | 1 | 639¢ | 5.51¢/oz",
+        "target": "Canned Diced Tomatoes - 14.5 OZ - Market Pantry™ | 2 | 218¢ | 7.52¢/oz",
+        "kroger": "Simple Truth® Canned Diced Tomatoes - 14.5 Ounce | 2 | 198¢ | 6.83¢/oz",
+        "heb": "H-E-B Canned Diced Tomatoes 14.5 oz | 2 | 178¢ | 6.14¢/oz",
+        "aldi": "missing",
+        "tomthumb": "O Organics® Canned Diced Tomatoes - 14.5 Ounce | 2 | 218¢ | 7.52¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "salsa",
+      "need": 16,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Medium Chunky Salsa, 16 oz | 1 | 259¢ | 16.19¢/oz",
+        "costco": "Kirkland Signature Medium Chunky Salsa 38 oz, 2 pack | 1 | 1109¢ | 14.59¢/oz",
+        "target": "Medium Chunky Salsa - 16 OZ - Market Pantry™ | 1 | 319¢ | 19.94¢/oz",
+        "kroger": "Simple Truth® Medium Chunky Salsa - 16 Ounce | 1 | 299¢ | 18.69¢/oz",
+        "heb": "Hill Country Fare Medium Chunky Salsa 16 oz | 1 | 279¢ | 17.44¢/oz",
+        "aldi": "Clancy’s Medium Chunky Salsa, 16 oz | 1 | 239¢ | 14.94¢/oz",
+        "tomthumb": "O Organics® Medium Chunky Salsa - 16 Ounce | 1 | 319¢ | 19.94¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "mac-and-cheese",
+      "need": 21.75,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Macaroni & Cheese Dinner, 7.25 oz | 4 | 396¢ | 13.66¢/oz",
+        "costco": "Kirkland Signature Macaroni & Cheese Dinner 7.25 oz, 12 pack | 1 | 1039¢ | 11.94¢/oz",
+        "target": "Macaroni & Cheese Dinner - 7.25 OZ - up&up™ | 4 | 436¢ | 15.03¢/oz",
+        "kroger": "Kroger® Macaroni & Cheese Dinner - 7.25 Ounce | 4 | 436¢ | 15.03¢/oz",
+        "heb": "Hill Country Fare Macaroni & Cheese Dinner 7.25 oz | 4 | 396¢ | 13.66¢/oz",
+        "aldi": "Specially Selected Macaroni & Cheese Dinner, 7.25 oz | 4 | 356¢ | 12.28¢/oz",
+        "tomthumb": "O Organics® Macaroni & Cheese Dinner - 7.25 Ounce | 4 | 476¢ | 16.41¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "ketchup",
+      "need": 32,
+      "cheapest": [
+        "kroger"
+      ],
+      "stores": {
+        "walmart": "Great Value Tomato Ketchup, 32 oz | 2 | 538¢ | 8.41¢/oz",
+        "costco": "Kirkland Signature Tomato Ketchup 44 oz, 2 pack | 1 | 689¢ | 7.83¢/oz",
+        "target": "Tomato Ketchup - 32 OZ - up&up™ | 2 | 618¢ | 9.66¢/oz",
+        "kroger": "Kroger® Tomato Ketchup - 32 Ounce | 2 | 398¢ | 6.22¢/oz | Card price",
+        "heb": "Hill Country Fare Tomato Ketchup 32 oz | 2 | 438¢ | 6.84¢/oz | Weekly ad",
+        "aldi": "Friendly Farms Tomato Ketchup, 32 oz | 2 | 438¢ | 6.84¢/oz | Weekly ad",
+        "tomthumb": "Lucerne® Tomato Ketchup - 32 Ounce | 2 | 658¢ | 10.28¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "spaghetti",
+      "need": 32,
+      "cheapest": [
+        "walmart"
+      ],
+      "stores": {
+        "walmart": "Great Value Spaghetti, 16 oz | 2 | 218¢ | 6.81¢/oz",
+        "costco": "Kirkland Signature Spaghetti 16 oz, 6 pack | 1 | 619¢ | 6.45¢/oz",
+        "target": "Spaghetti - 16 OZ - Market Pantry™ | 2 | 278¢ | 8.69¢/oz",
+        "kroger": "Simple Truth® Spaghetti - 16 Ounce | 2 | 258¢ | 8.06¢/oz",
+        "heb": "Hill Country Fare Spaghetti 16 oz | 2 | 238¢ | 7.44¢/oz",
+        "aldi": "missing",
+        "tomthumb": "Signature SELECT® Spaghetti - 16 Ounce | 2 | 278¢ | 8.69¢/oz",
+        "sprouts": "Spaghetti - 16 OZ - Sprouts™ | 2 | 278¢ | 8.69¢/oz"
+      }
+    },
+    {
+      "product": "pasta-sauce",
+      "need": 48,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Traditional Pasta Sauce, 24 oz | 2 | 418¢ | 8.71¢/oz",
+        "costco": "Kirkland Signature Traditional Pasta Sauce 24 oz, 3 pack | 1 | 609¢ | 8.46¢/oz",
+        "target": "Traditional Pasta Sauce - 24 OZ - Good & Gather™ | 2 | 538¢ | 11.21¢/oz",
+        "kroger": "Simple Truth® Traditional Pasta Sauce - 24 Ounce | 2 | 498¢ | 10.38¢/oz",
+        "heb": "H-E-B Traditional Pasta Sauce 24 oz | 2 | 478¢ | 9.96¢/oz",
+        "aldi": "Clancy’s Traditional Pasta Sauce, 24 oz | 2 | 398¢ | 8.29¢/oz",
+        "tomthumb": "Lucerne® Traditional Pasta Sauce - 24 Ounce | 2 | 538¢ | 11.21¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "white-rice",
+      "need": 32,
+      "cheapest": [
+        "walmart"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Long Grain White Rice, 2 lb | 2 | 398¢ | 6.22¢/oz",
+        "costco": "Riceland Long Grain White Rice 25 lbs | 1 | 2299¢ | 5.75¢/oz | Member savings",
+        "target": "Long Grain White Rice - 2 LB - up&up™ | 2 | 478¢ | 7.47¢/oz",
+        "kroger": "Kroger® Long Grain White Rice - 2 Pound | 2 | 458¢ | 7.16¢/oz",
+        "heb": "Hill Country Fare Long Grain White Rice 2 lbs | 2 | 438¢ | 6.84¢/oz",
+        "aldi": "missing",
+        "tomthumb": "O Organics® Long Grain White Rice - 2 Pound | 2 | 498¢ | 7.78¢/oz",
+        "sprouts": "Long Grain White Rice - 2 LB - Sprouts™ | 2 | 478¢ | 7.47¢/oz"
+      }
+    },
+    {
+      "product": "toasted-oats-cereal",
+      "need": 18,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Toasted Whole Grain Oat Cereal, 18 oz | 2 | 698¢ | 19.39¢/oz",
+        "costco": "missing",
+        "target": "Toasted Whole Grain Oat Cereal - 18 OZ - Good & Gather™ | 2 | 818¢ | 22.72¢/oz",
+        "kroger": "Simple Truth® Toasted Whole Grain Oat Cereal - 18 Ounce | 2 | 798¢ | 22.17¢/oz",
+        "heb": "Hill Country Fare Toasted Whole Grain Oat Cereal 18 oz | 2 | 738¢ | 20.50¢/oz",
+        "aldi": "Friendly Farms Toasted Whole Grain Oat Cereal, 18 oz | 2 | 638¢ | 17.72¢/oz",
+        "tomthumb": "Signature SELECT® Toasted Whole Grain Oat Cereal - 18 Ounce | 2 | 858¢ | 23.83¢/oz",
+        "sprouts": "Toasted Whole Grain Oat Cereal - 18 OZ - Sprouts™ | 2 | 858¢ | 23.83¢/oz"
+      }
+    },
+    {
+      "product": "ground-coffee",
+      "need": 30.5,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Medium Roast Ground Coffee, 30.5 oz | 1 | 959¢ | 31.44¢/oz",
+        "costco": "Kirkland Signature Medium Roast Ground Coffee 48 oz | 1 | 1409¢ | 29.35¢/oz",
+        "target": "Medium Roast Ground Coffee - 30.5 OZ - up&up™ | 1 | 1139¢ | 37.34¢/oz",
+        "kroger": "Kroger® Medium Roast Ground Coffee - 30.5 Ounce | 1 | 1109¢ | 36.36¢/oz",
+        "heb": "H-E-B Medium Roast Ground Coffee 30.5 oz | 1 | 999¢ | 32.75¢/oz",
+        "aldi": "Millville Medium Roast Ground Coffee, 30.5 oz | 1 | 919¢ | 30.13¢/oz",
+        "tomthumb": "Signature SELECT® Medium Roast Ground Coffee - 30.5 Ounce | 1 | 1189¢ | 38.98¢/oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "orange-juice",
+      "need": 52,
+      "cheapest": [
+        "heb"
+      ],
+      "stores": {
+        "walmart": "Great Value 100% Orange Juice, 52 fl oz | 2 | 678¢ | 6.52¢/fl_oz",
+        "costco": "Kirkland Signature 100% Orange Juice 89 fl. oz., 2 pack | 1 | 1119¢ | 6.29¢/fl_oz",
+        "target": "100% Orange Juice - 52 FL OZ - Good & Gather™ | 2 | 858¢ | 8.25¢/fl_oz",
+        "kroger": "Kroger® 100% Orange Juice - 52 Fluid Ounces | 2 | 798¢ | 7.67¢/fl_oz",
+        "heb": "Hill Country Fare 100% Orange Juice 89 fl. oz. | 1 | 619¢ | 6.96¢/fl_oz",
+        "aldi": "Millville 100% Orange Juice, 52 fl oz | 2 | 658¢ | 6.33¢/fl_oz",
+        "tomthumb": "Lucerne® 100% Orange Juice - 52 Fluid Ounces | 2 | 898¢ | 8.63¢/fl_oz",
+        "sprouts": "100% Orange Juice - 52 FL OZ - Sprouts™ | 2 | 838¢ | 8.06¢/fl_oz"
+      }
+    },
+    {
+      "product": "bottled-water",
+      "need": 405.6,
+      "cheapest": [
+        "tomthumb"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Purified Bottled Water, 24 x 16.9 fl oz | 1 | 389¢ | 0.96¢/fl_oz",
+        "costco": "Ozarka Purified Bottled Water 16.9 fl. oz., 40 pack | 1 | 769¢ | 1.14¢/fl_oz",
+        "target": "Purified Bottled Water - 24 × 16.9 FL OZ - Good & Gather™ | 1 | 469¢ | 1.16¢/fl_oz",
+        "kroger": "Kroger® Purified Bottled Water - 24 pk / 16.9 Fluid Ounces | 1 | 449¢ | 1.11¢/fl_oz",
+        "heb": "Hill Country Fare Purified Bottled Water 16.9 fl. oz., 24 pack | 1 | 419¢ | 1.03¢/fl_oz",
+        "aldi": "missing",
+        "tomthumb": "Ozarka® Purified Bottled Water - 24 pk / 16.9 Fluid Ounces | 1 | 369¢ | 0.91¢/fl_oz | for U price",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "cola",
+      "need": 144,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Cola Soda 12 Pack, 12 x 12 fl oz | 1 | 609¢ | 4.23¢/fl_oz",
+        "costco": "Pepsi Cola Soda 12 Pack 12 fl. oz., 35 pack | 1 | 1569¢ | 3.74¢/fl_oz | Member savings",
+        "target": "Cola Soda 12 Pack - 12 × 12 FL OZ - up&up™ | 1 | 759¢ | 5.27¢/fl_oz",
+        "kroger": "Simple Truth® Cola Soda 12 Pack - 12 pk / 12 Fluid Ounces | 1 | 689¢ | 4.78¢/fl_oz",
+        "heb": "H-E-B Cola Soda 12 Pack 12 fl. oz., 12 pack | 1 | 629¢ | 4.37¢/fl_oz",
+        "aldi": "Simply Nature Cola Soda 12 Pack, 12 x 12 fl oz | 1 | 589¢ | 4.09¢/fl_oz",
+        "tomthumb": "O Organics® Cola Soda 12 Pack - 12 pk / 12 Fluid Ounces | 1 | 739¢ | 5.13¢/fl_oz",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "tortilla-chips",
+      "need": 13,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Restaurant Style Tortilla Chips, 13 oz | 2 | 518¢ | 19.92¢/oz",
+        "costco": "Kirkland Signature Restaurant Style Tortilla Chips 13 oz, 2 pack | 1 | 499¢ | 19.19¢/oz",
+        "target": "Restaurant Style Tortilla Chips - 13 OZ - Market Pantry™ | 2 | 618¢ | 23.77¢/oz",
+        "kroger": "Simple Truth® Restaurant Style Tortilla Chips - 13 Ounce | 2 | 598¢ | 23.00¢/oz",
+        "heb": "H-E-B Restaurant Style Tortilla Chips 13 oz | 2 | 558¢ | 21.46¢/oz",
+        "aldi": "Millville Restaurant Style Tortilla Chips, 13 oz | 2 | 418¢ | 16.08¢/oz | Weekly ad",
+        "tomthumb": "O Organics® Restaurant Style Tortilla Chips - 13 Ounce | 2 | 458¢ | 17.62¢/oz | for U price",
+        "sprouts": "missing"
+      }
+    },
+    {
+      "product": "granola-bars",
+      "need": 12,
+      "cheapest": [
+        "aldi"
+      ],
+      "stores": {
+        "walmart": "Great Value Chewy Granola Bars, 12 ct | 1 | 349¢ | 29.08¢/ea",
+        "costco": "Kirkland Signature Chewy Granola Bars 48 count | 1 | 1249¢ | 26.02¢/ea",
+        "target": "Chewy Granola Bars - 12 CT - up&up™ | 1 | 439¢ | 36.58¢/ea",
+        "kroger": "Simple Truth® Chewy Granola Bars - 12 Count | 1 | 399¢ | 33.25¢/ea",
+        "heb": "H-E-B Chewy Granola Bars 12 count | 1 | 379¢ | 31.58¢/ea",
+        "aldi": "Friendly Farms Chewy Granola Bars, 12 ct | 1 | 319¢ | 26.58¢/ea",
+        "tomthumb": "Lucerne® Chewy Granola Bars - 12 Count | 1 | 449¢ | 37.42¢/ea",
+        "sprouts": "Chewy Granola Bars - 12 CT - Sprouts™ | 1 | 429¢ | 35.75¢/ea"
+      }
+    },
+    {
+      "product": "toilet-paper",
+      "need": 12,
+      "cheapest": [
+        "walmart"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Toilet Paper, 12 rolls | 1 | 769¢ | 64.08¢/ea | Rollback",
+        "costco": "Charmin Toilet Paper 30 rolls | 1 | 2469¢ | 82.30¢/ea",
+        "target": "Toilet Paper - 12 rolls - Market Pantry™ | 1 | 1049¢ | 87.42¢/ea",
+        "kroger": "Kroger® Toilet Paper - 12 rolls | 1 | 1009¢ | 84.08¢/ea",
+        "heb": "H-E-B Toilet Paper 12 rolls | 1 | 929¢ | 77.42¢/ea",
+        "aldi": "missing",
+        "tomthumb": "Signature SELECT® Toilet Paper - 12 rolls | 1 | 1119¢ | 93.25¢/ea",
+        "sprouts": "Toilet Paper - 12 rolls - Sprouts™ | 1 | 1059¢ | 88.25¢/ea"
+      }
+    },
+    {
+      "product": "frozen-mixed-veg",
+      "need": 32,
+      "cheapest": [
+        "kroger"
+      ],
+      "stores": {
+        "walmart": "Great Value Frozen Mixed Vegetables, 16 oz | 2 | 258¢ | 8.06¢/oz",
+        "costco": "Birds Eye Frozen Mixed Vegetables 5 lbs | 1 | 759¢ | 9.49¢/oz",
+        "target": "Frozen Mixed Vegetables - 16 OZ - Market Pantry™ | 2 | 318¢ | 9.94¢/oz",
+        "kroger": "Kroger® Frozen Mixed Vegetables - 16 Ounce | 2 | 218¢ | 6.81¢/oz | Weekly ad",
+        "heb": "Hill Country Fare Frozen Mixed Vegetables 16 oz | 2 | 278¢ | 8.69¢/oz",
+        "aldi": "missing",
+        "tomthumb": "O Organics® Frozen Mixed Vegetables - 16 Ounce | 2 | 338¢ | 10.56¢/oz",
+        "sprouts": "Frozen Mixed Vegetables - 16 OZ - Sprouts™ | 2 | 318¢ | 9.94¢/oz"
+      }
+    },
+    {
+      "product": "vanilla-ice-cream",
+      "need": 48,
+      "cheapest": [
+        "walmart"
+      ],
+      "stores": {
+        "walmart": "Sam's Choice Vanilla Ice Cream, 48 fl oz | 2 | 778¢ | 8.10¢/fl_oz",
+        "costco": "Blue Bell Vanilla Ice Cream 0.5 gal, 2 pack | 1 | 1229¢ | 9.60¢/fl_oz",
+        "target": "Vanilla Ice Cream - 1/2 GAL - Blue Bell™ | 1 | 779¢ | 12.17¢/fl_oz",
+        "kroger": "Kroger® Vanilla Ice Cream - 48 Fluid Ounces | 2 | 898¢ | 9.35¢/fl_oz",
+        "heb": "H-E-B Vanilla Ice Cream 48 fl. oz. | 2 | 818¢ | 8.52¢/fl_oz",
+        "aldi": "missing",
+        "tomthumb": "Lucerne® Vanilla Ice Cream - 48 Fluid Ounces | 2 | 998¢ | 10.40¢/fl_oz",
+        "sprouts": "Vanilla Ice Cream - 48 FL OZ - Sprouts™ | 2 | 938¢ | 9.77¢/fl_oz"
+      }
+    }
+  ]
+}

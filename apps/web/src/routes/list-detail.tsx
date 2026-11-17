@@ -444,6 +444,11 @@ export function ListDetailPage() {
           {data.itemCount} items · {data.checkedCount} checked{data.archived ? ' · archived' : ''}
         </p>
       </div>
+      {data.itemCount > 0 ? (
+        <Link to={`/lists/${data.id}/compare`} className={primaryButton}>
+          <span aria-hidden="true">⇄ </span>Compare prices
+        </Link>
+      ) : null}
       <div className={card}>
         {/* Not disabled while saving: disabling blurs the input and closes suggestions mid-typing. */}
         <ProductSearch
