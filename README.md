@@ -108,6 +108,15 @@ calendar.
 - [`CLAUDE.md`](CLAUDE.md): working conventions and the full command reference.
 - [`docs/screenshots`](docs/screenshots): screenshots from each phase.
 
-The app was built in seven reviewed phases. To see the app as it was at the end of a phase, check out
-`snapshot/phase-1` … `snapshot/phase-7`. The `phase-1-scaffold` … `phase-7-optimizer` branches have all been
-brought up to `main`, and `main` has the finished app.
+The app was built in seven reviewed phases, and `main` (like each `phase-*` branch) has the finished app. To see
+the code as it was at the end of a phase, check out its commit, for example `git checkout cdfee6a`:
+
+| Phase | What it added | Commit |
+|---|---|---|
+| 1 | Scaffold: monorepo, Postgres, migrations, mock pricing seed | `cdfee6a` |
+| 2 | Auth: email/password and Google, sessions, onboarding, settings | `8117f4d` |
+| 3 | Grocery lists: editing, templates, search, CSV/text import | `44aefd5` |
+| 4 | Price comparison: unit prices, cheapest store, savings | `82f94e3` |
+| 5 | Price history and alerts | `353545c` |
+| 6 | Savings dashboard, trips, CSV/PDF export | `ec006ed` |
+| 7 | Single- vs multi-store optimizer | `e897776` |
