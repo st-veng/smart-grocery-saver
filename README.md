@@ -108,5 +108,6 @@ calendar.
 - [`CLAUDE.md`](CLAUDE.md): working conventions and the full command reference.
 - [`docs/screenshots`](docs/screenshots): screenshots from each phase.
 
-The app was built in seven reviewed phases. Each has its own branch (`phase-1-scaffold` … `phase-7-optimizer`);
-`main` contains all of them.
+The app was built in seven reviewed phases. To see the app as it was at the end of a phase, check out
+`snapshot/phase-1` … `snapshot/phase-7`. The `phase-1-scaffold` … `phase-7-optimizer` branches have all been
+brought up to `main`, and `main` has the finished app.
