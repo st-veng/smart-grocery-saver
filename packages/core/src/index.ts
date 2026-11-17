@@ -15,3 +15,4 @@ export * from './pricing/compare.js';
 export * from './pricing/history.js';
 export * from './trips/plan.js';
 export * from './trips/ledger.js';
+export * from './optimizer/optimize.js';
