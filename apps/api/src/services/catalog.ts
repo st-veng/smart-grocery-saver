@@ -78,7 +78,10 @@ export async function searchProducts(
           SELECT ${PRODUCT_COLUMNS},
             GREATEST(similarity(lower(p.name), ${q}), word_similarity(${q}, lower(p.name)),
                      COALESCE(MAX(word_similarity(${q}, lower(a.alias))), 0))
-            + CASE WHEN lower(p.name) LIKE ${`${like}%`} THEN 0.5
+            -- Exact name/alias first ("honey" → Pure Clover Honey, not Honeycrisp Apples), then whole words, then prefixes.
+            + CASE WHEN lower(p.name) = ${q} OR COALESCE(bool_or(lower(a.alias) = ${q}), false) THEN 1.0
+                   WHEN (' ' || lower(p.name) || ' ') LIKE ${`% ${like} %`} THEN 0.6
+                   WHEN lower(p.name) LIKE ${`${like}%`} THEN 0.5
                    WHEN lower(p.name) LIKE ${`% ${like}%`} THEN 0.3
                    WHEN bool_or(lower(a.alias) LIKE ${`${like}%`}) THEN 0.3
                    WHEN lower(p.name) LIKE ${`%${like}%`} THEN 0.1 ELSE 0 END AS score

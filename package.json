@@ -22,7 +22,8 @@
     "test:unit": "pnpm -r --filter=!@sgs/e2e test:unit",
     "test:api": "pnpm --filter @sgs/api test",
     "test:e2e": "pnpm --filter @sgs/e2e test",
-    "verify": "bash scripts/verify.sh"
+    "verify": "bash scripts/verify.sh",
+    "sim:advance": "pnpm --filter @sgs/pricing sim:advance"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

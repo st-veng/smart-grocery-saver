@@ -15,6 +15,7 @@ import {
   type IsoDate,
 } from '@sgs/core';
 import type { AisleSlug } from '../catalog/categories.js';
+import { PLANTED_LOWS, type PlantedLow } from '../catalog/planted.js';
 import type { ProductSpec } from '../catalog/products.js';
 import { chainBySlug, type ChainSpec, type PromoProfile } from '../catalog/stores.js';
 import type { ProviderPrice } from '../provider.js';
@@ -78,6 +79,21 @@ export class PriceModel {
       : packageBaseQuantity(s.packCount, s.unitQuantity, s.unit);
   }
 
+  /** A planted clearance covering this item on this date (relative to the anchor), if any. */
+  plantedFor(item: MockItem, date: IsoDate): PlantedLow | null {
+    if (!item.product) return null;
+    const offset = toDayNumber(date) - this.anchorDay;
+    return (
+      PLANTED_LOWS.find(
+        (p) =>
+          p.product === item.product?.slug &&
+          p.chain === item.chain &&
+          offset >= p.offsetDays &&
+          offset < p.offsetDays + p.days,
+      ) ?? null
+    );
+  }
+
   regularPrice(item: MockItem, date: IsoDate): number {
     const spec = item.product;
     if (!spec) return 499; // unmatchable extras: flat price
@@ -111,6 +127,22 @@ export class PriceModel {
 
   observe(item: MockItem, date: IsoDate): ProviderPrice {
     const regular = this.regularPrice(item, date);
+    const planted = this.plantedFor(item, date);
+    if (planted) {
+      const sale = Math.min(regular - 10, roundEnding9(regular * planted.factor));
+      if (sale > 0) {
+        return {
+          sku: item.sku,
+          date,
+          regularPriceCents: regular,
+          salePriceCents: sale,
+          promoType: 'clearance',
+          promoLabel: planted.label,
+          minQty: 1,
+          memberOnly: false,
+        };
+      }
+    }
     const chain = chainBySlug(item.chain);
     const promo =
       item.product && chain.promo ? this.bestPromo(item, chain, chain.promo, regular, date) : null;

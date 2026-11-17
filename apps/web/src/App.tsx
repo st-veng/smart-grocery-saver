@@ -6,7 +6,9 @@ import { RedirectIfSignedIn, RequireSignedIn, RequireUser } from './components/G
 import { LoginPage, RegisterPage } from './routes/auth-pages';
 import { OnboardingPage } from './routes/onboarding';
 import { ComparePickerPage, CompareListPage } from './routes/compare';
+import { DealsPage } from './routes/deals';
 import { ImportPage } from './routes/import';
+import { NotificationsPage } from './routes/notifications';
 import { ProductPage } from './routes/product';
 import { ListDetailPage } from './routes/list-detail';
 import { ListsPage, TemplatesPage } from './routes/lists-pages';
@@ -54,7 +56,8 @@ export const routes: RouteObject[] = [
       { path: 'compare', element: <ComparePickerPage /> },
       { path: 'lists/:id/compare', element: <CompareListPage /> },
       { path: 'products/:id', element: <ProductPage /> },
-      { path: 'deals', element: <PlaceholderPage title="Deals & History" phase={5} /> },
+      { path: 'deals', element: <DealsPage /> },
+      { path: 'notifications', element: <NotificationsPage /> },
       { path: 'dashboard', element: <PlaceholderPage title="Savings Dashboard" phase={6} /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },

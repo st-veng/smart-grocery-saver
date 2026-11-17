@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { DemoBanner } from './DemoBanner';
+import { Bell } from './Bell';
 import { ThemeToggle } from './ThemeToggle';
 
 export const NAV = [
@@ -20,7 +21,13 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const compareArea = /^\/(lists\/[^/]+\/compare|products\/)/.test(pathname);
+  const compareArea = /^\/lists\/[^/]+\/compare/.test(pathname);
+  const dealsArea = /^\/(products|notifications)(\/|$)/.test(pathname);
+  /** Sub-pages light up their tab (e.g. a list page → Lists, a product page → Deals). */
+  const inArea = (to: string) =>
+    (to === '/' && listsArea) ||
+    (to === '/compare' && compareArea) ||
+    (to === '/deals' && dealsArea);
   const listsArea = !compareArea && /^\/(lists|templates|import)(\/|$)/.test(pathname);
   return (
     <div className="flex min-h-dvh flex-col">
@@ -39,7 +46,10 @@ export function AppShell() {
             </span>
             Smart Grocery Saver
           </p>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Bell />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <div className="mx-auto flex w-full max-w-5xl flex-1">
@@ -53,19 +63,8 @@ export function AppShell() {
                 <NavLink
                   to={n.to}
                   end={n.end}
-                  className={({ isActive }) =>
-                    linkClass({
-                      isActive:
-                        isActive ||
-                        (n.to === '/' && listsArea) ||
-                        (n.to === '/compare' && compareArea),
-                    })
-                  }
-                  aria-current={
-                    (n.to === '/' && listsArea) || (n.to === '/compare' && compareArea)
-                      ? 'page'
-                      : undefined
-                  }
+                  className={({ isActive }) => linkClass({ isActive: isActive || inArea(n.to) })}
+                  aria-current={inArea(n.to) ? 'page' : undefined}
                 >
                   <span aria-hidden="true" className="text-lg leading-none md:text-base">
                     {n.icon}

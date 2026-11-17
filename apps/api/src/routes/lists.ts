@@ -1,4 +1,14 @@
 import {
+  type AlertResponse,
+  type AlertsResponse,
+  CreateAlertRequest,
+  HistoryRange,
+  type HistoryResponse,
+  type NotificationsResponse,
+  SimAdvanceRequest,
+  type SimAdvanceResponse,
+  type StoreItemHistoryResponse,
+  UpdateAlertRequest,
   AddItemRequest,
   CreateListRequest,
   ImportCommitRequest,
@@ -22,7 +32,18 @@ import { Router, type Request } from 'express';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { auth, requireAuth } from '../auth/middleware.js';
-import { isIsoDate, todayIn } from '@sgs/core';
+import { addDays, isIsoDate, todayIn } from '@sgs/core';
+import { advanceTo, marketDates } from '@sgs/pricing';
+import {
+  deleteAlert,
+  listAlerts,
+  listNotifications,
+  markRead,
+  productHistory,
+  storeItemHistory,
+  updateAlert,
+  upsertAlert,
+} from '../services/history.js';
 import { getProduct, listCategories, searchProducts } from '../services/catalog.js';
 import { compareListForUser, productOffersForUser } from '../services/compare.js';
 import { commitImport, previewImport } from '../services/imports.js';
@@ -88,7 +109,7 @@ export function listsRouter(deps: AppDeps): Router {
   const r = Router();
   const { db } = deps;
   const guard = requireAuth(db, deps.tokens);
-  r.use(['/lists', '/templates', '/imports'], guard);
+  r.use(['/lists', '/templates', '/imports', '/alerts', '/notifications'], guard);
 
   const CompareQuery = z.object({
     asOf: z.string().refine(isIsoDate, 'asOf must be YYYY-MM-DD').optional(),
@@ -269,5 +290,111 @@ export function listsRouter(deps: AppDeps): Router {
     await sendList(res, auth(res).userId, listId, 201);
   });
 
+  // ───────────── history, alerts, notifications (Phase 5) ─────────────
+  const HistoryQuery = z.object({
+    range: HistoryRange.default('90d'),
+    asOf: z.string().refine(isIsoDate, 'asOf must be YYYY-MM-DD').optional(),
+  });
+  const ctx = { radiusMiles: deps.config.preselectRadiusMiles, metro: deps.metro };
+
+  r.get('/products/:id/history', guard, async (req, res) => {
+    const q = parse(HistoryQuery, req.query);
+    const body: z.infer<typeof HistoryResponse> = await productHistory(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      q.range,
+      q.asOf ?? today(),
+      ctx,
+    );
+    res.json(body);
+  });
+
+  r.get('/store-items/:id/history', guard, async (req, res) => {
+    const q = parse(HistoryQuery, req.query);
+    const body: z.infer<typeof StoreItemHistoryResponse> = await storeItemHistory(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      q.range,
+      q.asOf ?? today(),
+      ctx,
+    );
+    res.json(body);
+  });
+
+  r.get('/alerts', async (_req, res) => {
+    const body: z.infer<typeof AlertsResponse> = { alerts: await listAlerts(db, auth(res).userId) };
+    res.json(body);
+  });
+
+  r.post('/alerts', async (req, res) => {
+    const alert = await upsertAlert(
+      db,
+      auth(res).userId,
+      parse(CreateAlertRequest, req.body),
+      now(),
+    );
+    const body: z.infer<typeof AlertResponse> = { alert };
+    res.status(201).json(body);
+  });
+
+  r.patch('/alerts/:id', async (req, res) => {
+    const alert = await updateAlert(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      parse(UpdateAlertRequest, req.body),
+    );
+    const body: z.infer<typeof AlertResponse> = { alert };
+    res.json(body);
+  });
+
+  r.delete('/alerts/:id', async (req, res) => {
+    await deleteAlert(db, auth(res).userId, idParam(req, 'id'));
+    res.status(204).end();
+  });
+
+  r.get('/notifications', async (req, res) => {
+    const q = parse(z.object({ unread: z.enum(['true', 'false']).default('false') }), req.query);
+    const body: z.infer<typeof NotificationsResponse> = await listNotifications(
+      db,
+      auth(res).userId,
+      q.unread === 'true',
+    );
+    res.json(body);
+  });
+
+  r.post('/notifications/read-all', async (_req, res) => {
+    await markRead(db, auth(res).userId, 'all', now());
+    res.status(204).end();
+  });
+
+  r.post('/notifications/:id/read', async (req, res) => {
+    await markRead(db, auth(res).userId, idParam(req, 'id'), now());
+    res.status(204).end();
+  });
+
+  return r;
+}
+
+/**
+ * Test-only hooks (e2e). Mounted only when ENABLE_TEST_HOOKS=true, which config refuses in production.
+ * POST /api/v1/test/sim/advance {to?: date, days?: n} — idempotent market-date advance + alert run.
+ */
+export function testHooksRouter(deps: AppDeps): Router {
+  const r = Router();
+  r.post('/test/sim/advance', async (req, res) => {
+    const input = parse(SimAdvanceRequest, req.body ?? {});
+    const { current } = await marketDates(deps.db);
+    if (!current) throw new AppError('SERVICE_UNAVAILABLE', 503, 'No seeded market data');
+    if (input.to !== undefined && !isIsoDate(input.to)) {
+      throw new AppError('VALIDATION_FAILED', 400, 'to must be YYYY-MM-DD');
+    }
+    const target = input.to ?? addDays(current, input.days ?? 1);
+    const result = await advanceTo(deps.db, deps.provider, target, { now: deps.clock });
+    const body: z.infer<typeof SimAdvanceResponse> = result;
+    res.json(body);
+  });
   return r;
 }

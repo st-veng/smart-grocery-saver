@@ -81,8 +81,10 @@ describe('App shell (signed in)', () => {
     mockApi(signedIn());
     renderAt('/');
     const nav = await screen.findByRole('navigation', { name: 'Primary' });
-    await userEvent.click(within(nav).getByRole('link', { name: /Deals/ }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Deals & History' })).toBeInTheDocument();
-    expect(screen.getByText('Coming in Phase 5.')).toBeInTheDocument();
+    await userEvent.click(within(nav).getByRole('link', { name: /Dashboard/ }));
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Savings Dashboard' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Coming in Phase 6.')).toBeInTheDocument();
   });
 });

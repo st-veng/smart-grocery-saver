@@ -1,5 +1,6 @@
-import { haversineMiles, preselectChains, type LatLng } from '@sgs/core';
-import { storeLocations, stores, users, userStores, type Db } from '@sgs/db';
+import { haversineMiles, type LatLng } from '@sgs/core';
+import { userStoreView } from '@sgs/pricing';
+import { storeLocations, stores, userStores, type Db } from '@sgs/db';
 import type { MyStoresResponse, PutMyStoresRequest, Store } from '@sgs/shared';
 import { asc, eq } from 'drizzle-orm';
 import { AppError } from '../errors.js';
@@ -44,53 +45,10 @@ export async function myStores(
   userId: string,
   radiusMiles: number,
 ): Promise<MyStoresResponse> {
-  const [user] = await db
-    .select({ lat: users.homeLat, lng: users.homeLng })
-    .from(users)
-    .where(eq(users.id, userId));
-  const all = await listStores(db);
-  const locs = await db
-    .select({
-      id: storeLocations.id,
-      storeId: storeLocations.storeId,
-      name: storeLocations.name,
-      lat: storeLocations.lat,
-      lng: storeLocations.lng,
-    })
-    .from(storeLocations);
-  const saved = await db.select().from(userStores).where(eq(userStores.userId, userId));
-  const savedBy = new Map(saved.map((s) => [s.storeId, s]));
-  const home =
-    user && user.lat !== null && user.lng !== null ? { lat: user.lat, lng: user.lng } : null;
-  const pre = home
-    ? preselectChains(
-        home,
-        all.map((s) => ({ storeId: s.id, locations: locs.filter((l) => l.storeId === s.id) })),
-        radiusMiles,
-      )
-    : null;
+  const view = await userStoreView(db, userId, radiusMiles);
   return {
-    radiusMiles,
-    fallback: pre?.fallback ?? false,
-    stores: all.map((s) => {
-      const d = pre?.chains.find((c) => c.storeId === s.id);
-      const nearest =
-        d?.nearestLocationId != null ? locs.find((l) => l.id === d.nearestLocationId) : undefined;
-      const mine = savedBy.get(s.id);
-      return {
-        ...s,
-        enabled: mine ? mine.enabled : (d?.preselected ?? false),
-        hasMembership: mine?.hasMembership ?? false,
-        hasLoyalty: mine ? mine.hasLoyalty : s.loyaltyProgram !== null,
-        preferredLocationId: mine?.preferredLocationId ?? null,
-        nearestLocation:
-          nearest && d?.distanceMiles != null
-            ? { id: nearest.id, name: nearest.name, distanceMiles: d.distanceMiles }
-            : null,
-        preselected: d?.preselected ?? false,
-        saved: mine !== undefined,
-      };
-    }),
+    ...view,
+    stores: view.stores.map(({ sortOrder: _sortOrder, ...rest }) => rest),
   };
 }
 

@@ -321,7 +321,7 @@ export async function fullSync(
 ): Promise<SyncSummary> {
   const [run] = await db
     .insert(providerSyncRuns)
-    .values({ provider: provider.id })
+    .values({ provider: provider.id, kind: 'full', asOf: opts.anchor })
     .returning({ id: providerSyncRuns.id });
   const runId = run?.id ?? -1;
   try {

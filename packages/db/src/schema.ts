@@ -349,8 +349,15 @@ export const providerSyncRuns = pgTable(
     pricePointsWritten: integer('price_points_written').notNull().default(0),
     unmatchedItems: integer('unmatched_items').notNull().default(0),
     error: text('error'),
+    /** 'full' = seed/backfill (as_of = history end); 'daily' = one day ingested (sim / scheduled sync). */
+    kind: text('kind').notNull().default('full'),
+    /** The market date this run brought prices up to. */
+    asOf: date('as_of', { mode: 'string' }),
   },
-  (t) => [check('provider_sync_runs_status_check', sql`${t.status} IN ('running','ok','failed')`)],
+  (t) => [
+    check('provider_sync_runs_status_check', sql`${t.status} IN ('running','ok','failed')`),
+    check('provider_sync_runs_kind_check', sql`${t.kind} IN ('full','daily')`),
+  ],
 );
 
 // ───────────── lists ─────────────

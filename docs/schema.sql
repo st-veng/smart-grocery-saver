@@ -262,7 +262,9 @@ CREATE TABLE provider_sync_runs (
   items_upserted       integer NOT NULL DEFAULT 0,
   price_points_written integer NOT NULL DEFAULT 0,
   unmatched_items      integer NOT NULL DEFAULT 0,
-  error                text
+  error                text,
+  kind                 text NOT NULL DEFAULT 'full' CHECK (kind IN ('full','daily')),
+  as_of                date                           -- market date this run brought prices up to
 );
 
 -- ───────────────────────── Lists ─────────────────────────

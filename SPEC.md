@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 8: Phases 1–4 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 9: Phases 1–5 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -614,6 +614,29 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
    - Target-price alerts compare in the display unit.
 4. Playwright: product page → toggle 30/90/365 (the chart renders the expected series count) → create alert → `sim:advance` via test hook → bell shows 1 → notification opens the product.
 
+**Delivered (2026-11-17): `pnpm verify` green.** Notes and deviations:
+- **History** is a per-store step series of the day's lowest unit price, computed on the server from price periods and clipped to the range.
+  - The range ends on today's date in America/Chicago and starts N−1 days earlier.
+  - Only the user's eligible stores are included, with their member and loyalty prices. A multi-buy price counts at the single-package price.
+  - Tests compare every day of the 90-day series for 6 products, and the 365-day historic low for 21 products, against independent SQL brute-force scans.
+- **Historic low:** the lowest unit price at any eligible store in the 365 days ending today. "At its 1-year low" means today's best price equals it.
+- **Alerts:**
+  - A historic-low alert fires only when today's best price is *strictly* below the prior 365-day low (Q-7; a tie doesn't fire).
+  - A target-price alert fires at or below the target, in cents per the product's display unit.
+  - Notifications are de-duplicated per (alert, price point). Re-running a day, or a price that stays low for several days, notifies once.
+- **Market simulation:**
+  - Migration `0001` adds `provider_sync_runs.kind` (`full`/`daily`) and `as_of`; the market date is the latest `as_of`.
+  - `pnpm sim:advance [--days N | --to DATE]` ingests each day, then evaluates alerts.
+  - `PLANTED_LOWS` (`packages/pricing/src/catalog/planted.ts`) is a deterministic clearance on Walmart honey from anchor+1 for 3 days, so alerts can be demoed and tested.
+- **Test hook:** `POST /api/v1/test/sim/advance` is mounted only with `ENABLE_TEST_HOOKS=true`, and startup fails if that's set in production. The e2e spec that moves the market runs in its own Playwright project (`sim`) after the mobile and desktop projects finish, so it never races the price-reading specs.
+- **Chart** (Recharts, dataviz reference palette slots 1–4, validated light and dark):
+  - At most 4 store lines at once, chosen with checkboxes. The default is the cheapest stores plus your usual store. A store keeps its colour while others are toggled.
+  - Dashed 1-year-low line, crosshair tooltip, and end labels nudged so they don't overlap.
+  - A data table view. It's required because two light-mode slots are below 3:1 contrast.
+- **Search fix:** an exact name or alias match now ranks first. "honey" used to return Honeycrisp Apples ahead of Pure Clover Honey; the e2e spec caught this.
+- **New screens:** Deals & History tab (`/deals`), Notifications with an alerts list (`/notifications`), and a header bell with an unread count. The product page now shows history and alert controls.
+- **Refactor:** the effective store-settings view moved to `@sgs/pricing` (`userStoreView`), so the API and alert evaluation share one implementation.
+
 ### Phase 6: Savings dashboard
 - Trips: commit a plan with a server-side recompute and snapshot.
 - Summary, series and breakdown endpoints. KPI cards and charts (Recharts) in S9.
@@ -923,7 +946,9 @@ CREATE TABLE provider_sync_runs (
   items_upserted       integer NOT NULL DEFAULT 0,
   price_points_written integer NOT NULL DEFAULT 0,
   unmatched_items      integer NOT NULL DEFAULT 0,
-  error                text
+  error                text,
+  kind                 text NOT NULL DEFAULT 'full' CHECK (kind IN ('full','daily')),
+  as_of                date                           -- market date this run brought prices up to
 );
 
 -- ───────────────────────── Lists ─────────────────────────

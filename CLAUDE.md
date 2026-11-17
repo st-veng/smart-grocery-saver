@@ -72,7 +72,7 @@ Dependency direction: `web → shared` · `api → shared, core, db, pricing` ·
 | `pnpm db:seed` | wipe app data and seed via MockPriceProvider + the real ingestion pipeline (`SEED`, `SEED_ANCHOR_DATE` respected; ~17 s) |
 | `pnpm db:reset` | drop + migrate + seed dev DB |
 | `pnpm dev` | api (:4000, tsx watch) + web (:5173, Vite proxy `/api` → :4000) |
-| `pnpm sim:advance --days N` | replay mock provider forward N days (alerts demo) |
+| `pnpm sim:advance [--days N \| --to YYYY-MM-DD]` | ingest the mock provider day by day from the latest market date and evaluate alerts (planted honey clearance at anchor+1 → 1-year-low demo) |
 | `pnpm typecheck` | `tsc -p` in every package (`pnpm -r typecheck`) |
 | `pnpm lint` / `pnpm lint:fix` | ESLint + Prettier check |
 | `pnpm test` | unit + API + DB tests (Vitest) in every package; DB-backed suites create their own `sgs_test_<suite>` database |
@@ -124,7 +124,8 @@ Filter to one package: `pnpm --filter @sgs/core test`. Single test file: `pnpm -
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `AUTH_GOOGLE_MODE=mock|real`, `PRICE_PROVIDER=mock`, `SEED`,
 `SEED_ANCHOR_DATE`, `FUEL_CENTS_PER_GAL_DEFAULT=279`, `METRO=DFW`, `PRESELECT_RADIUS_MILES=7`,
 `DEFAULT_ORIGIN=33.1500,-96.8065` (Main St & Preston Rd, Frisco TX — demo/e2e user home), `DEMO_USER_PASSWORD` (dev seed only),
-`AUTH_RATE_LIMIT_SCALE=1` (multiplies auth rate limits; e2e uses 50; must be 1 in production). Demo login:
+`AUTH_RATE_LIMIT_SCALE=1` (multiplies auth rate limits; e2e uses 50; must be 1 in production),
+`ENABLE_TEST_HOOKS=false` (mounts `POST /api/v1/test/sim/advance`; e2e only; refused in production). Demo login:
 `demo@sgs.test` / `demo-password-123` (seeded by `pnpm db:seed`).
 Missing Google credentials ⇒ mock mode automatically; the API refuses to start with `AUTH_GOOGLE_MODE=mock` when
 `NODE_ENV=production`.

@@ -23,3 +23,29 @@ body {
 :focus-visible {
   @apply outline-2 outline-offset-2 outline-brand-600 dark:outline-brand-100;
 }
+
+/*
+ * Chart tokens (dataviz reference palette, slots 1–4, validated light + dark: adjacent CVD ΔE ≥ 8.4,
+ * normal-vision ≥ 19.8). Light slots 3–4 are < 3:1 on the surface → charts ship end labels + a table.
+ * Dark values are their own selected steps, switched by the app's `.dark` class.
+ */
+.viz-root {
+  --viz-text: #0f172a;
+  --viz-muted: #475569;
+  --viz-grid: #e2e8f0;
+  --viz-surface: #ffffff;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+}
+.dark .viz-root {
+  --viz-text: #f1f5f9;
+  --viz-muted: #cbd5e1;
+  --viz-grid: #334155;
+  --viz-surface: #0f172a;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+}

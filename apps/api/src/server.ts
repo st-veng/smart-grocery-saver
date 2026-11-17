@@ -44,6 +44,7 @@ const app = createApp({
     cookieSecure: config.COOKIE_SECURE,
     preselectRadiusMiles: config.PRESELECT_RADIUS_MILES,
     defaultOrigin: config.DEFAULT_ORIGIN,
+    testHooks: config.ENABLE_TEST_HOOKS,
   },
   rateLimits: scaleLimits(DEFAULT_RATE_LIMITS, config.AUTH_RATE_LIMIT_SCALE),
   metro: config.METRO,

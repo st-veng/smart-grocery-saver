@@ -34,6 +34,11 @@ const EnvSchema = z
     AUTH_GOOGLE_MODE: z.preprocess(blankToUndefined, z.enum(['mock', 'real']).optional()),
     /** Multiplies every auth rate limit (e2e runs many sign-ins from one IP). Must stay 1 in production. */
     AUTH_RATE_LIMIT_SCALE: z.coerce.number().int().min(1).max(1000).default(1),
+    /** Mount e2e test hooks (market simulation). Refused in production. */
+    ENABLE_TEST_HOOKS: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
     PRESELECT_RADIUS_MILES: z.coerce.number().positive().max(100).default(7),
     DEFAULT_ORIGIN: z
       .string()
@@ -70,6 +75,13 @@ const EnvSchema = z
           code: 'custom',
           path: ['JWT_SECRET'],
           message: 'Set a real JWT_SECRET in production',
+        });
+      }
+      if (env.ENABLE_TEST_HOOKS) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['ENABLE_TEST_HOOKS'],
+          message: 'Test hooks are not allowed in production',
         });
       }
       if (env.AUTH_RATE_LIMIT_SCALE !== 1) {

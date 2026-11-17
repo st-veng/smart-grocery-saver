@@ -70,6 +70,10 @@ describe('catalog', () => {
       expect.arrayContaining(['flour-tortillas', 'corn-tortillas']),
     );
     expect(await names('zzzzqqq')).toEqual([]);
+    // Exact name/alias beats a longer name that merely starts with the query.
+    expect((await names('honey'))[0]).toBe('honey');
+    expect((await names('milk'))[0]).toBe('whole-milk');
+    expect((await names('pepper'))[0]).toBe('black-pepper');
   });
 
   it('pages through products and filters by category', async () => {

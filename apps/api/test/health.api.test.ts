@@ -54,7 +54,7 @@ describe('GET /api/v1/health/ready', () => {
     const body = ReadyResponse.parse(res.body);
     expect(body.status).toBe('ready');
     expect(body.checks.database.ok).toBe(true);
-    expect(body.checks.migrations).toMatchObject({ ok: true, applied: 1 });
+    expect(body.checks.migrations).toMatchObject({ ok: true, applied: 2 });
     expect(body.checks.provider).toMatchObject({ ok: true, id: 'mock' });
     expect(body).toMatchObject({ priceProvider: 'mock', metro: 'DFW' });
   });

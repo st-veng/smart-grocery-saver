@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "seed": "tsx src/cli/seed.ts",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit"
+    "test:unit": "vitest run --project unit",
+    "sim:advance": "tsx src/cli/sim-advance.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

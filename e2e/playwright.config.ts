@@ -14,8 +14,15 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: { baseURL: `http://localhost:${WEB_PORT}`, trace: 'off' },
   projects: [
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, testIgnore: /\.sim\.spec\.ts$/ },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /\.sim\.spec\.ts$/ },
+    // Specs that advance the shared market date run last, so they never race the price-reading specs.
+    {
+      name: 'sim',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /\.sim\.spec\.ts$/,
+      dependencies: ['mobile', 'desktop'],
+    },
   ],
   webServer: [
     {
@@ -32,6 +39,7 @@ export default defineConfig({
         WEB_ORIGIN: `http://localhost:${String(WEB_PORT)}`,
         AUTH_GOOGLE_MODE: 'mock',
         AUTH_RATE_LIMIT_SCALE: '50',
+        ENABLE_TEST_HOOKS: 'true',
       },
     },
     {

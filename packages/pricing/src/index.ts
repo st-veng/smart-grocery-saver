@@ -17,3 +17,13 @@ export { CHAINS } from './catalog/stores.js';
 export { SYSTEM_TEMPLATES } from './catalog/templates.js';
 export { seedCatalog } from './seed/catalog-seed.js';
 export { seedSystemTemplates } from './seed/lists-seed.js';
+export { userStoreView, type UserStoreView } from './user-stores.js';
+export { PLANTED_LOWS } from './catalog/planted.js';
+export { evaluateAlerts, unreadCount, type AlertPayload } from './history/alerts.js';
+export { advanceTo, marketDates, type AdvanceResult } from './history/sim.js';
+export {
+  loadRawPeriods,
+  unitPeriodsFor,
+  type RawPeriod,
+  type StorePeriods,
+} from './history/periods.js';
