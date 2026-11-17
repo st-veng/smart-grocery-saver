@@ -77,14 +77,37 @@ describe('App shell (signed in)', () => {
     expect(patches[0]?.headers.get('X-Requested-With')).toBe('sgs');
   });
 
-  it('navigates to placeholder pages via the primary nav', async () => {
-    mockApi(signedIn());
+  it('navigates to the dashboard via the primary nav', async () => {
+    mockApi({
+      ...signedIn(),
+      'GET /dashboard/summary': {
+        status: 200,
+        body: {
+          from: '2025-11-01',
+          to: '2026-11-01',
+          tripCount: 0,
+          totalSavedCents: 0,
+          totalSpentCents: 0,
+          baselineTotalCents: 0,
+          fuelSpentCents: 0,
+          avgSavingsPct: null,
+          bestStore: null,
+        },
+      },
+    });
     renderAt('/');
     const nav = await screen.findByRole('navigation', { name: 'Primary' });
     await userEvent.click(within(nav).getByRole('link', { name: /Dashboard/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Savings' })).toBeInTheDocument();
+    expect(await screen.findByText('No trips in this period yet.')).toBeInTheDocument();
+  });
+
+  it('unknown pages say so instead of promising a phase', async () => {
+    mockApi(signedIn());
+    renderAt('/no-such-page');
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Savings Dashboard' }),
+      await screen.findByRole('heading', { level: 1, name: 'Page not found' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Coming in Phase 6.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Go to your lists' })).toHaveAttribute('href', '/');
   });
 });

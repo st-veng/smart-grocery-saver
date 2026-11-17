@@ -172,6 +172,61 @@ describe('compare page', () => {
     ).toBeInTheDocument();
   });
 
+  it('"I shopped this" sends only stores and a date, then reports the saving', async () => {
+    const calls = mockApi({
+      ...signedIn(),
+      [`GET /lists/${LIST_ID}/comparison`]: { status: 200, body: comparison([1, 5, 7]) },
+      'POST /trips': {
+        status: 201,
+        body: {
+          trip: {
+            id: uuid(900),
+            listId: LIST_ID,
+            listName: 'Family week',
+            planType: 'single',
+            stores: [{ id: 1, name: 'Walmart' }],
+            baselineStore: { id: 5, name: 'Kroger' },
+            itemCount: 1,
+            itemsTotalCents: 1732,
+            fuelCostCents: 61,
+            distanceMiles: 5.5,
+            baselineTotalCents: 1878,
+            savingsCents: 85,
+            priceAsOf: '2026-11-01',
+            shoppedOn: '2026-11-01',
+            createdAt: '2026-11-01T18:00:00.000Z',
+            items: [],
+            skipped: [],
+            mpg: 25,
+            fuelCentsPerGal: 279,
+          },
+        },
+      },
+    });
+    renderAt(`/lists/${LIST_ID}/compare`);
+    const log = await screen.findByRole('region', { name: 'I shopped this' });
+    // The cheapest store is pre-selected; a store with nothing priced is not offered.
+    expect(within(log).getByRole('checkbox', { name: 'Walmart' })).toBeChecked();
+    expect(within(log).queryByRole('checkbox', { name: 'Aldi' })).toBeNull();
+    await userEvent.click(within(log).getByRole('checkbox', { name: 'Kroger' }));
+    await userEvent.clear(within(log).getByLabelText('Date shopped'));
+    await userEvent.type(within(log).getByLabelText('Date shopped'), '2026-10-30');
+    await userEvent.click(within(log).getByRole('button', { name: 'Save trip' }));
+    expect(await within(log).findByRole('status')).toHaveTextContent(
+      'Trip saved: you saved $0.85 vs Kroger (incl. $0.61 fuel).',
+    );
+    const post = calls.find((c) => c.method === 'POST' && c.path === '/trips');
+    expect(post?.body).toEqual({
+      listId: LIST_ID,
+      plan: { storeIds: [1, 5] },
+      shoppedOn: '2026-10-30',
+    });
+    expect(within(log).getByRole('link', { name: 'View trip' })).toHaveAttribute(
+      'href',
+      `/trips/${uuid(900)}`,
+    );
+  });
+
   it('shows per-item store prices with unit price, sale/card badges, extra quantity and "Not carried"', async () => {
     mockApi({
       ...signedIn(),
@@ -198,9 +253,11 @@ describe('compare page', () => {
       },
     });
     renderAt(`/lists/${LIST_ID}/compare`);
-    await userEvent.click(await screen.findByRole('checkbox', { name: 'Walmart' }));
+    const filter = () => screen.getByRole('group', { name: 'Stores to compare' });
+    await screen.findByRole('heading', { level: 1, name: 'Compare prices' });
+    await userEvent.click(within(filter()).getByRole('checkbox', { name: 'Walmart' }));
     await waitFor(() => {
-      expect(screen.getByRole('checkbox', { name: 'Walmart' })).not.toBeChecked();
+      expect(within(filter()).getByRole('checkbox', { name: 'Walmart' })).not.toBeChecked();
     });
     expect(calls.filter((c) => c.path.endsWith('/comparison')).at(-1)?.url).toContain(
       '?stores=5,7',
@@ -211,9 +268,9 @@ describe('compare page', () => {
     expect(rows.map((r) => r.dataset.store)).toEqual(['Kroger', 'Aldi']);
     expect(rows[0]).toHaveTextContent(/Kroger.*Cheapest/);
     // At least one store must stay selected.
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Aldi' }));
+    await userEvent.click(within(filter()).getByRole('checkbox', { name: 'Aldi' }));
     await waitFor(() => {
-      expect(screen.getByRole('checkbox', { name: 'Kroger' })).toBeDisabled();
+      expect(within(filter()).getByRole('checkbox', { name: 'Kroger' })).toBeDisabled();
     });
   });
 });

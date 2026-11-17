@@ -40,6 +40,7 @@ const EnvSchema = z
       .default('false')
       .transform((v) => v === 'true'),
     PRESELECT_RADIUS_MILES: z.coerce.number().positive().max(100).default(7),
+    FUEL_CENTS_PER_GAL_DEFAULT: z.coerce.number().int().positive().max(2000).default(279),
     DEFAULT_ORIGIN: z
       .string()
       .default('33.1500,-96.8065')

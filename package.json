@@ -12,7 +12,7 @@
     "db:down": "bash scripts/db-down.sh",
     "db:generate": "pnpm --filter @sgs/db generate",
     "db:migrate": "pnpm --filter @sgs/db migrate",
-    "db:seed": "pnpm --filter @sgs/pricing seed",
+    "db:seed": "pnpm --filter @sgs/pricing seed && pnpm --filter @sgs/api seed:demo-trips",
     "db:reset": "pnpm --filter @sgs/db reset && pnpm db:seed",
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "eslint . --max-warnings=0 && prettier --check .",

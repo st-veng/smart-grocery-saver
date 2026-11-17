@@ -1,7 +1,7 @@
 import type { CompareLineResult, ComparisonResponse, LineAtStore, StoreTotal } from '@sgs/shared';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { card, FormError, Spinner } from '../components/ui';
+import { card, FormError, primaryButton, Spinner } from '../components/ui';
 import { ApiError } from '../lib/api';
 import {
   formatMoney,
@@ -12,6 +12,7 @@ import {
   UNIT_LABEL,
 } from '../lib/format';
 import { useComparison, useLists } from '../lib/lists';
+import { addDaysIso, chicagoToday, useCommitTrip } from '../lib/trips';
 
 const message = (e: unknown) =>
   e instanceof ApiError ? e.message : e ? 'Something went wrong' : null;
@@ -312,6 +313,7 @@ export function CompareListPage() {
         ) : null}
       </fieldset>
       <Summary data={data} name={name} />
+      <LogTrip data={data} name={name} />
       <section aria-labelledby="items-h" className="space-y-3">
         <h2 id="items-h" className="text-lg font-semibold">
           Item by item
@@ -327,6 +329,117 @@ export function CompareListPage() {
           </p>
         ) : null}
       </section>
+    </section>
+  );
+}
+
+/** "I shopped this": commit the list as a trip at 1–3 stores (SPEC Phase 6). */
+function LogTrip({
+  data,
+  name,
+}: {
+  data: ComparisonResponse;
+  name: (id: number | null) => string;
+}) {
+  const options = ranked(data.totals).filter((t) => t.pricedCount > 0);
+  const first = data.cheapestStoreId ?? options[0]?.storeId;
+  const [chosen, setChosen] = useState<number[]>(first === undefined ? [] : [first]);
+  const today = chicagoToday();
+  const [day, setDay] = useState(today);
+  const commit = useCommitTrip();
+  const dateId = useId();
+  if (options.length === 0 || data.baseline.storeId === null) return null;
+  const toggle = (id: number, on: boolean) => {
+    setChosen((cur) => (on ? [...cur, id].slice(0, 3) : cur.filter((x) => x !== id)));
+  };
+  const saved = commit.data;
+  return (
+    <section aria-labelledby="log-h" className={`${card} space-y-3`}>
+      <h2 id="log-h" className="text-lg font-semibold">
+        I shopped this
+      </h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Log a trip to track your savings. We price the list on the day you shopped and, with more
+        than one store, buy each item where it was cheaper. Savings are measured against{' '}
+        {name(data.baseline.storeId)}.
+      </p>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-semibold">Where did you shop? (up to 3)</legend>
+        <div className="flex flex-wrap gap-2">
+          {options.map((t) => {
+            const on = chosen.includes(t.storeId);
+            return (
+              <label
+                key={t.storeId}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-slate-300 px-3 has-[:checked]:border-brand-700 has-[:checked]:bg-brand-50 dark:border-slate-700 dark:has-[:checked]:bg-slate-800"
+              >
+                <input
+                  type="checkbox"
+                  className="size-4 accent-brand-700"
+                  checked={on}
+                  disabled={!on && chosen.length >= 3}
+                  onChange={(e) => {
+                    toggle(t.storeId, e.target.checked);
+                  }}
+                />
+                {name(t.storeId)}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+      <div className="flex flex-col gap-1">
+        <label htmlFor={dateId} className="text-sm font-semibold">
+          Date shopped
+        </label>
+        <input
+          id={dateId}
+          type="date"
+          value={day}
+          min={addDaysIso(today, -365)}
+          max={today}
+          onChange={(e) => {
+            setDay(e.target.value);
+          }}
+          className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 dark:border-slate-700 dark:bg-slate-950"
+        />
+      </div>
+      <button
+        type="button"
+        className={primaryButton}
+        disabled={chosen.length === 0 || commit.isPending}
+        onClick={() => {
+          commit.mutate({ listId: data.listId, plan: { storeIds: chosen }, shoppedOn: day });
+        }}
+      >
+        {commit.isPending ? 'Saving trip…' : 'Save trip'}
+      </button>
+      <FormError message={message(commit.error)} />
+      {saved ? (
+        <p
+          role="status"
+          className="rounded-xl bg-brand-50 p-3 text-brand-900 dark:bg-slate-800 dark:text-brand-100"
+        >
+          Trip saved:{' '}
+          {saved.savingsCents >= 0 ? (
+            <>
+              you saved <strong>{formatMoney(saved.savingsCents)}</strong>
+            </>
+          ) : (
+            <>
+              you spent <strong>{formatMoney(-saved.savingsCents)}</strong> more
+            </>
+          )}{' '}
+          vs {saved.baselineStore.name} (incl. {formatMoney(saved.fuelCostCents)} fuel).{' '}
+          <Link to={`/trips/${saved.id}`} className="font-medium underline">
+            View trip
+          </Link>{' '}
+          ·{' '}
+          <Link to="/dashboard" className="font-medium underline">
+            Dashboard
+          </Link>
+        </p>
+      ) : null}
     </section>
   );
 }

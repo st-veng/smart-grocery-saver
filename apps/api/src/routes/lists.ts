@@ -28,7 +28,7 @@ import {
   type ProductsResponse,
   type TemplatesResponse,
 } from '@sgs/shared';
-import { Router, type Request } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { auth, requireAuth } from '../auth/middleware.js';
@@ -63,23 +63,9 @@ import {
   updateList,
 } from '../services/lists.js';
 import { AppError } from '../errors.js';
-import { parse } from '../validate.js';
+import { idParam, Paging, parse } from '../validate.js';
 
 type Out<T extends z.ZodType> = z.infer<T>;
-
-const Uuid = z.uuid();
-const Paging = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(25),
-  cursor: z.coerce.number().int().min(0).default(0),
-});
-
-/** Path ids that are not UUIDs can't exist: 404 (not 400) so probing reveals nothing. */
-function idParam(req: Request, name: string): string {
-  const v = req.params[name];
-  const r = Uuid.safeParse(v);
-  if (!r.success) throw new AppError('NOT_FOUND', 404, 'Not found');
-  return r.data;
-}
 
 export function catalogRouter(deps: AppDeps): Router {
   const r = Router();

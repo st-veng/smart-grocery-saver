@@ -92,17 +92,15 @@ const toCompareProduct = (p: ProductSummary): CompareProduct => ({
 
 const round4 = (n: number) => Math.round(n * 10_000) / 10_000;
 
-export async function compareListForUser(
-  db: Db,
-  userId: string,
-  listId: string,
-  opts: {
-    asOf: IsoDate;
-    storeIds?: readonly number[] | undefined;
-    radiusMiles: number;
-    metro: string;
-  },
-): Promise<ComparisonResponse> {
+export interface CompareOpts {
+  readonly asOf: IsoDate;
+  readonly storeIds?: readonly number[] | undefined;
+  readonly radiusMiles: number;
+  readonly metro: string;
+}
+
+/** The core comparison plus what was loaded for it (shared by the comparison view and trips). */
+export async function computeComparison(db: Db, userId: string, listId: string, opts: CompareOpts) {
   const list = await ownedList(db, userId, listId);
   const items = await db
     .select()
@@ -137,6 +135,21 @@ export async function compareListForUser(
     baselineStoreId: user?.baselineStoreId ?? null,
     onlyStoreIds: opts.storeIds,
   });
+  return { list, items, prods, storeRows, result };
+}
+
+export async function compareListForUser(
+  db: Db,
+  userId: string,
+  listId: string,
+  opts: CompareOpts,
+): Promise<ComparisonResponse> {
+  const { list, items, prods, storeRows, result } = await computeComparison(
+    db,
+    userId,
+    listId,
+    opts,
+  );
   const eligibleOrSelected = new Set([
     ...result.stores.map((s) => s.storeId),
     ...result.excluded.filter((e) => e.reason === 'not_selected').map((e) => e.storeId),

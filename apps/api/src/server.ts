@@ -43,6 +43,9 @@ const app = createApp({
     webOrigin: config.WEB_ORIGIN,
     cookieSecure: config.COOKIE_SECURE,
     preselectRadiusMiles: config.PRESELECT_RADIUS_MILES,
+    fuelCentsPerGalDefault: config.FUEL_CENTS_PER_GAL_DEFAULT,
+    // PRICE_PROVIDER only accepts 'mock' until a licensed provider exists, so exports say so.
+    demoPrices: true,
     defaultOrigin: config.DEFAULT_ORIGIN,
     testHooks: config.ENABLE_TEST_HOOKS,
   },

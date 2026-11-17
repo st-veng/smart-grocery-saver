@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 9: Phases 1–5 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 10: Phases 1–6 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -331,13 +331,13 @@ Text format: one item per line, with leading quantity and unit parsed ("2 lb gro
 ### Trips, dashboard & export
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/trips` | 🔒 commit a plan `{listId, planId \| plan, shoppedOn}`. The server recomputes the plan at `price_as_of` and snapshots it, so client totals are never trusted |
+| POST | `/trips` | 🔒 commit a plan `{listId, plan: {storeIds: 1–3}, shoppedOn}` (strict; Phase 7 may add `planId`). The server recomputes the plan at `price_as_of` = `shoppedOn` and snapshots it, so client totals are never trusted. `shoppedOn` must be within the last 365 days (America/Chicago) |
 | GET | `/trips`, `/trips/:id` | 🔒 |
 | DELETE | `/trips/:id` | 🔒 |
-| GET | `/dashboard/summary?from=&to=` | 🔒 KPIs: totalSavedCents, avgSavingsPct, tripCount, bestStore, fuelSpentCents |
+| GET | `/dashboard/summary?from=&to=` | 🔒 KPIs: totalSavedCents, avgSavingsPct, tripCount, bestStore, fuelSpentCents (+ totalSpentCents, baselineTotalCents). Range defaults: `to` = today, `from` = `to` − 365 days; ≤ 10 years |
 | GET | `/dashboard/series?metric=savings\|spend&interval=week\|month&from=&to=` | 🔒 |
 | GET | `/dashboard/breakdown?by=store\|category&from=&to=` | 🔒 |
-| GET | `/exports/savings.csv?from=&to=` | 🔒 one row per trip item |
+| GET | `/exports/savings.csv?from=&to=` | 🔒 one row per trip item, plus one `fuel` row per trip with fuel, so the Saved column sums to totalSavedCents |
 | GET | `/exports/savings.pdf?from=&to=` | 🔒 summary + KPI table + per-trip table (server-rendered, `pdfkit`) |
 
 ### Optimizer
@@ -648,6 +648,27 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 3. CSV is RFC 4180, opens in Excel/Sheets and contains formula-injection-safe cells (leading `= + - @` escaped).
 4. PDF: valid, one page per ≤40 trips, totals match the API (parsed in test with `pdf-parse`).
 5. Playwright: commit 2 trips → dashboard KPIs match → download CSV and PDF (files exist and are non-empty) → charts readable in dark mode.
+
+**Delivered (2026-11-17): `pnpm verify` green.** Notes and deviations:
+- **Committing a trip** (`POST /trips {listId, plan: {storeIds}, shoppedOn}`; strict schema, so client totals are rejected):
+  - The server re-runs the comparison at `price_as_of = shoppedOn`. Backdated trips are priced from history on that day; `shoppedOn` must be today or up to 365 days earlier (America/Chicago).
+  - With several stores, each item goes to its cheapest line among them (ties → the store listed first). Core `planFromComparison`.
+  - **Like-for-like baseline:** items the baseline store can't price are left out on *both* sides, so `baseline_total` covers exactly the items bought. Skipped items are listed in the snapshot. No complete baseline store → 422.
+  - **Route and fuel:** home → stores → home by brute force (core `bestRoute`, road miles = haversine × 1.25), using each store's preferred or nearest location. Fuel = miles ÷ mpg × the user's price (or `FUEL_CENTS_PER_GAL_DEFAULT`, 279), rounded half-even once. This is the routing Phase 7 reuses.
+  - **Snapshot:** `trips.plan` holds list name, store names in route order, every bought line, skipped items, mpg and fuel price. Reads use only the snapshot and the trip columns, so later price, store-name or list changes never alter a trip (tested by doubling every price and renaming the list after committing).
+- **Dashboard:**
+  - `avgSavingsPct` = total saved ÷ baseline total (weighted by spend, not a mean of per-trip %).
+  - `bestStore` = the store with the largest item-level saving (before fuel); none when nothing was saved.
+  - Series buckets: weeks start Monday (ISO, = Postgres `date_trunc`), months on the 1st; `shopped_on` is already a Chicago date. Every bucket in the range is returned, empty ones as zero.
+  - Breakdowns are item-level (fuel can't be split by store or category); "Other" is used for products without a category, and the UI folds rows beyond 7 into "Other".
+- **CSV:** RFC 4180 with CRLF and a UTF-8 BOM (for Excel). Text cells starting with `= + - @`, tab or CR get a leading apostrophe; money is written as plain decimals (negative savings stay numeric). Adds a **fuel row per trip** (deviation from "one row per trip item") so the Saved column reconciles with the dashboard.
+- **PDF** (`pdfkit`, Letter): title, range, "Demo prices" note, KPI table on page 1, then the trip table, 40 trips per page. Tests parse it with `pdf-parse` (page count, every KPI label and value equal to the API).
+- **UI:**
+  - "I shopped this" on the Compare screen: 1–3 stores (the cheapest is pre-selected) and the date.
+  - Dashboard (S9): range (3 months / 12 months / all), KPI cards, saved or spent per month or week (bars coloured by sign, and labelled in words), and saved by store or category with direct value labels. Every chart has a data table. CSV and PDF downloads.
+  - Trip history and detail (S13), with a confirmed delete.
+- **Dev data:** `pnpm db:seed` now also commits 24 demo trips over the past year through the real trip service (`apps/api/src/cli/seed-demo-trips.ts`). Test and e2e databases don't get them.
+- **Fixes:** the 404 page said "Coming in Phase 0"; it now says the page doesn't exist and links home.
 
 ### Phase 7: Single- vs multi-store optimizer
 - The `core/optimizer` (exact subset enumeration + brute-force route), fuel and time cost, and the recommendation rule.

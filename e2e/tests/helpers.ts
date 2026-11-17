@@ -28,3 +28,19 @@ export async function expectNoSeriousA11yViolations(page: Page): Promise<void> {
 export function uniqueEmail(prefix: string): string {
   return `${prefix}-${String(Date.now())}-${Math.random().toString(36).slice(2, 7)}@example.com`;
 }
+
+export const CSRF = { 'X-Requested-With': 'sgs' };
+
+/** A fresh, onboarded user (home 75034, default stores), so a spec owns its own data. */
+export async function signUpOnboarded(page: Page, label = 'user'): Promise<void> {
+  const reg = await page.request.post('/api/v1/auth/register', {
+    headers: CSRF,
+    data: { email: uniqueEmail(label), password: 'correct horse battery', displayName: label },
+  });
+  expect(reg.status()).toBe(201);
+  const me = await page.request.patch('/api/v1/me', {
+    headers: CSRF,
+    data: { homeZip: '75034', completeOnboarding: true },
+  });
+  expect(me.status()).toBe(200);
+}

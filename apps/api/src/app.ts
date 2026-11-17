@@ -14,6 +14,7 @@ import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
 import { catalogRouter, listsRouter, testHooksRouter } from './routes/lists.js';
 import { meRouter, storesRouter } from './routes/me.js';
+import { tripsRouter } from './routes/trips.js';
 
 /** Minimal query interface so tests can inject a failing database. */
 export interface Queryable {
@@ -25,6 +26,10 @@ export interface AppConfig {
   readonly cookieSecure: boolean;
   readonly preselectRadiusMiles: number;
   readonly defaultOrigin: LatLng;
+  /** Fuel price when the user hasn't set one (FUEL_CENTS_PER_GAL_DEFAULT). Default 279. */
+  readonly fuelCentsPerGalDefault?: number;
+  /** Mock prices: exports carry the "Demo prices" note. Default true. */
+  readonly demoPrices?: boolean;
   /** Mount /api/v1/test/* hooks (e2e only; refused in production by config). */
   readonly testHooks?: boolean;
 }
@@ -85,6 +90,7 @@ export function createApp(deps: AppDeps): Express {
   app.use('/api/v1/stores', storesRouter(deps));
   app.use('/api/v1', catalogRouter(deps));
   app.use('/api/v1', listsRouter(deps));
+  app.use('/api/v1', tripsRouter(deps));
   if (deps.config.testHooks) app.use('/api/v1', testHooksRouter(deps));
 
   app.use(notFoundHandler);

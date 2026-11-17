@@ -69,7 +69,7 @@ Dependency direction: `web → shared` · `api → shared, core, db, pricing` ·
 | `pnpm db:up` / `pnpm db:down` | start/stop Postgres on host port **5433**: docker compose, or a local PostgreSQL install when no Docker daemon is available |
 | `pnpm db:generate` | generate a migration from Drizzle schema changes |
 | `pnpm db:migrate` | apply migrations to `DATABASE_URL` |
-| `pnpm db:seed` | wipe app data and seed via MockPriceProvider + the real ingestion pipeline (`SEED`, `SEED_ANCHOR_DATE` respected; ~17 s) |
+| `pnpm db:seed` | wipe app data and seed via MockPriceProvider + the real ingestion pipeline (`SEED`, `SEED_ANCHOR_DATE` respected; ~17 s), then commit 24 demo trips for the dashboard |
 | `pnpm db:reset` | drop + migrate + seed dev DB |
 | `pnpm dev` | api (:4000, tsx watch) + web (:5173, Vite proxy `/api` → :4000) |
 | `pnpm sim:advance [--days N \| --to YYYY-MM-DD]` | ingest the mock provider day by day from the latest market date and evaluate alerts (planted honey clearance at anchor+1 → 1-year-low demo) |

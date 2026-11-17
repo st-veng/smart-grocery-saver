@@ -1,26 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_ANCHOR } from '../playwright.config';
-import { expectNoSeriousA11yViolations, uniqueEmail } from './helpers';
-
-const CSRF = { 'X-Requested-With': 'sgs' };
-
-/** A fresh, onboarded user (home 75034, default stores) — so this spec owns its notifications. */
-async function signUpOnboarded(page: Page): Promise<void> {
-  const reg = await page.request.post('/api/v1/auth/register', {
-    headers: CSRF,
-    data: {
-      email: uniqueEmail('watcher'),
-      password: 'correct horse battery',
-      displayName: 'Price Watcher',
-    },
-  });
-  expect(reg.status()).toBe(201);
-  const me = await page.request.patch('/api/v1/me', {
-    headers: CSRF,
-    data: { homeZip: '75034', completeOnboarding: true },
-  });
-  expect(me.status()).toBe(200);
-}
+import { CSRF, expectNoSeriousA11yViolations, signUpOnboarded } from './helpers';
 
 async function productId(page: Page, q: string): Promise<string> {
   const res = await page.request.get(`/api/v1/products?q=${encodeURIComponent(q)}&limit=1`);

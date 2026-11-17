@@ -40,7 +40,7 @@ test.describe('app shell (Phase 1)', () => {
       .getByRole('link', { name: /Dashboard/ })
       .click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Savings Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Savings' })).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

@@ -23,11 +23,13 @@ export function AppShell() {
   const { pathname } = useLocation();
   const compareArea = /^\/lists\/[^/]+\/compare/.test(pathname);
   const dealsArea = /^\/(products|notifications)(\/|$)/.test(pathname);
+  const dashboardArea = /^\/trips(\/|$)/.test(pathname);
   /** Sub-pages light up their tab (e.g. a list page → Lists, a product page → Deals). */
   const inArea = (to: string) =>
     (to === '/' && listsArea) ||
     (to === '/compare' && compareArea) ||
-    (to === '/deals' && dealsArea);
+    (to === '/deals' && dealsArea) ||
+    (to === '/dashboard' && dashboardArea);
   const listsArea = !compareArea && /^\/(lists|templates|import)(\/|$)/.test(pathname);
   return (
     <div className="flex min-h-dvh flex-col">

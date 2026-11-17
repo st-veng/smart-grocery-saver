@@ -58,9 +58,10 @@ test.describe('price comparison (Phase 4)', () => {
     await expectNoSeriousA11yViolations(page);
 
     // Turn the cheapest store off → a different store becomes cheapest.
-    await page.getByRole('checkbox', { name: name(api.cheapestStoreId), exact: true }).uncheck();
+    const filter = page.getByRole('group', { name: 'Stores to compare' });
+    await filter.getByRole('checkbox', { name: name(api.cheapestStoreId), exact: true }).uncheck();
     await expect(
-      page.getByRole('checkbox', { name: name(api.cheapestStoreId), exact: true }),
+      filter.getByRole('checkbox', { name: name(api.cheapestStoreId), exact: true }),
     ).not.toBeChecked();
     await expect(totals.locator(`li[data-store="${name(api.cheapestStoreId)}"]`)).toHaveCount(0);
     await expect(totals.getByRole('listitem').first()).toContainText('Cheapest');
