@@ -4,6 +4,8 @@ import {
   DashboardBreakdownQuery,
   DashboardRangeQuery,
   DashboardSeriesQuery,
+  OptimizeRequest,
+  type OptimizeResponse,
   type DashboardBreakdown,
   type DashboardSeries,
   type DashboardSummary,
@@ -14,6 +16,7 @@ import type { AppDeps } from '../app.js';
 import { auth, requireAuth } from '../auth/middleware.js';
 import { breakdown, resolveRange, series, summary } from '../services/dashboard.js';
 import { savingsCsv, savingsPdf } from '../services/exports.js';
+import { optimizeListForUser } from '../services/optimize.js';
 import { commitTrip, deleteTrip, getTrip, listTrips } from '../services/trips.js';
 import { idParam, Paging, parse } from '../validate.js';
 
@@ -21,7 +24,8 @@ import { idParam, Paging, parse } from '../validate.js';
 export function tripsRouter(deps: AppDeps): Router {
   const r = Router();
   const { db } = deps;
-  r.use(['/trips', '/dashboard', '/exports'], requireAuth(db, deps.tokens));
+  const guard = requireAuth(db, deps.tokens);
+  r.use(['/trips', '/dashboard', '/exports'], guard);
   const today = () => todayIn('America/Chicago', deps.clock());
 
   r.post('/trips', async (req, res) => {
@@ -34,6 +38,24 @@ export function tripsRouter(deps: AppDeps): Router {
       fuelCentsPerGalDefault: deps.config.fuelCentsPerGalDefault ?? 279,
     });
     res.status(201).json({ trip });
+  });
+  /** POST because it takes a body of options; it changes nothing. */
+  r.post('/lists/:id/optimize', guard, async (req, res) => {
+    const input = parse(OptimizeRequest, req.body ?? {});
+    const body: OptimizeResponse = await optimizeListForUser(
+      db,
+      auth(res).userId,
+      idParam(req, 'id'),
+      input,
+      {
+        asOf: today(),
+        radiusMiles: deps.config.preselectRadiusMiles,
+        metro: deps.metro,
+        defaultOrigin: deps.config.defaultOrigin,
+        fuelCentsPerGalDefault: deps.config.fuelCentsPerGalDefault ?? 279,
+      },
+    );
+    res.json(body);
   });
   r.get('/trips', async (req, res) => {
     const q = parse(Paging, req.query);

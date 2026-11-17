@@ -5,3 +5,4 @@ export * from './lists.js';
 export * from './compare.js';
 export * from './history.js';
 export * from './trips.js';
+export * from './optimize.js';

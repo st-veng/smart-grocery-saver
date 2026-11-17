@@ -43,6 +43,50 @@ interface PlanSnapshot {
   readonly fuelCentsPerGal: number;
 }
 
+export interface TripSettings {
+  readonly home: LatLng;
+  readonly mpg: number;
+  readonly fuelCentsPerGal: number;
+  /** Each store's stop: the user's preferred location, else the nearest one. */
+  readonly locations: Map<number, LatLng>;
+}
+
+/** Home, car and store stops, exactly as a trip is costed. Shared with the optimizer. */
+export async function tripSettings(
+  db: Db,
+  userId: string,
+  opts: Pick<TripOpts, 'radiusMiles' | 'defaultOrigin' | 'fuelCentsPerGalDefault'>,
+): Promise<TripSettings> {
+  const [user] = await db
+    .select({
+      lat: users.homeLat,
+      lng: users.homeLng,
+      mpg: users.vehicleMpg,
+      fuel: users.fuelCentsPerGal,
+    })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!user) throw new AppError('NOT_FOUND', 404, 'Not found');
+  const view = await userStoreView(db, userId, opts.radiusMiles);
+  const locs = await db
+    .select({ id: storeLocations.id, lat: storeLocations.lat, lng: storeLocations.lng })
+    .from(storeLocations);
+  const locations = new Map<number, LatLng>();
+  for (const s of view.stores) {
+    const loc = locs.find((l) => l.id === (s.preferredLocationId ?? s.nearestLocation?.id));
+    if (loc) locations.set(s.id, { lat: loc.lat, lng: loc.lng });
+  }
+  return {
+    home:
+      user.lat !== null && user.lng !== null
+        ? { lat: user.lat, lng: user.lng }
+        : opts.defaultOrigin,
+    mpg: user.mpg,
+    fuelCentsPerGal: user.fuel ?? opts.fuelCentsPerGalDefault,
+    locations,
+  };
+}
+
 export async function commitTrip(
   db: Db,
   userId: string,
@@ -74,31 +118,16 @@ export async function commitTrip(
     throw e;
   }
 
-  const [user] = await db
-    .select({
-      lat: users.homeLat,
-      lng: users.homeLng,
-      mpg: users.vehicleMpg,
-      fuel: users.fuelCentsPerGal,
-    })
-    .from(users)
-    .where(eq(users.id, userId));
-  if (!user) throw new AppError('NOT_FOUND', 404, 'Not found');
-  const home =
-    user.lat !== null && user.lng !== null ? { lat: user.lat, lng: user.lng } : opts.defaultOrigin;
-  const view = await userStoreView(db, userId, opts.radiusMiles);
-  const locs = await db
-    .select({ id: storeLocations.id, lat: storeLocations.lat, lng: storeLocations.lng })
-    .from(storeLocations);
-  const stops = plan.storeIds.flatMap((id) => {
-    const s = view.stores.find((v) => v.id === id);
-    const locId = s?.preferredLocationId ?? s?.nearestLocation?.id;
-    const loc = locs.find((l) => l.id === locId);
-    return loc ? [{ id, at: { lat: loc.lat, lng: loc.lng } }] : [];
-  });
-  const route = bestRoute(home, stops);
-  const fuelCentsPerGal = user.fuel ?? opts.fuelCentsPerGalDefault;
-  const fuel = fuelCostCents(route.miles, user.mpg, fuelCentsPerGal);
+  const trip = await tripSettings(db, userId, opts);
+  const route = bestRoute(
+    trip.home,
+    plan.storeIds.flatMap((id) => {
+      const at = trip.locations.get(id);
+      return at ? [{ id, at }] : [];
+    }),
+  );
+  const fuelCentsPerGal = trip.fuelCentsPerGal;
+  const fuel = fuelCostCents(route.miles, trip.mpg, fuelCentsPerGal);
   const order = [...route.order, ...plan.storeIds.filter((id) => !route.order.includes(id))];
 
   const storeName = (id: number) =>
@@ -135,7 +164,7 @@ export async function commitTrip(
       rawText: itemById.get(s.itemId)?.rawText ?? '',
       reason: s.reason,
     })),
-    mpg: user.mpg,
+    mpg: trip.mpg,
     fuelCentsPerGal,
   };
 
