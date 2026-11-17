@@ -1,22 +1,26 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router';
 import { AppShell } from './components/AppShell';
 import { RedirectIfSignedIn, RequireSignedIn, RequireUser } from './components/Guards';
 import { LoginPage, RegisterPage } from './routes/auth-pages';
 import { OnboardingPage } from './routes/onboarding';
 import { ComparePickerPage, CompareListPage } from './routes/compare';
-import { DashboardPage } from './routes/dashboard';
 import { DealsPage } from './routes/deals';
-import { ImportPage } from './routes/import';
 import { NotificationsPage } from './routes/notifications';
-import { PlanPage } from './routes/plan';
-import { ProductPage } from './routes/product';
 import { ListDetailPage } from './routes/list-detail';
 import { ListsPage, TemplatesPage } from './routes/lists-pages';
 import { NotFoundPage } from './routes/pages';
 import { SettingsPage } from './routes/settings';
-import { TripDetailPage, TripsPage } from './routes/trips';
+import { Spinner } from './components/ui';
+
+/**
+ * Screens with charts (Recharts) or used less often load on demand, so the first page a family
+ * opens (their lists) doesn't download the chart library.
+ */
+const lazyPage =
+  <K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K) =>
+  async () => ({ Component: (await load())[name] });
 
 export const routes: RouteObject[] = [
   {
@@ -50,21 +54,23 @@ export const routes: RouteObject[] = [
         <AppShell />
       </RequireUser>
     ),
+    // Shown only while a lazy screen loads on a cold start (e.g. opening /dashboard directly).
+    hydrateFallbackElement: <Spinner label="Loading…" />,
     children: [
       { index: true, element: <ListsPage /> },
       { path: 'lists/:id', element: <ListDetailPage /> },
-      { path: 'lists/:id/import', element: <ImportPage /> },
-      { path: 'import', element: <ImportPage /> },
+      { path: 'lists/:id/import', lazy: lazyPage(() => import('./routes/import'), 'ImportPage') },
+      { path: 'import', lazy: lazyPage(() => import('./routes/import'), 'ImportPage') },
       { path: 'templates', element: <TemplatesPage /> },
       { path: 'compare', element: <ComparePickerPage /> },
       { path: 'lists/:id/compare', element: <CompareListPage /> },
-      { path: 'lists/:id/plan', element: <PlanPage /> },
-      { path: 'products/:id', element: <ProductPage /> },
+      { path: 'lists/:id/plan', lazy: lazyPage(() => import('./routes/plan'), 'PlanPage') },
+      { path: 'products/:id', lazy: lazyPage(() => import('./routes/product'), 'ProductPage') },
       { path: 'deals', element: <DealsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
-      { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'trips', element: <TripsPage /> },
-      { path: 'trips/:id', element: <TripDetailPage /> },
+      { path: 'dashboard', lazy: lazyPage(() => import('./routes/dashboard'), 'DashboardPage') },
+      { path: 'trips', lazy: lazyPage(() => import('./routes/trips'), 'TripsPage') },
+      { path: 'trips/:id', lazy: lazyPage(() => import('./routes/trips'), 'TripDetailPage') },
       { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

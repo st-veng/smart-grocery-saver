@@ -98,7 +98,7 @@ describe('App shell (signed in)', () => {
     renderAt('/');
     const nav = await screen.findByRole('navigation', { name: 'Primary' });
     await userEvent.click(within(nav).getByRole('link', { name: /Dashboard/ }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Savings' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Savings' })).toBeInTheDocument();
     expect(await screen.findByText('No trips in this period yet.')).toBeInTheDocument();
   });
 

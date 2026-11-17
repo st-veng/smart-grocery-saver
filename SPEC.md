@@ -1,6 +1,6 @@
 # Smart Grocery Saver — Product & Technical Spec
 
-**Status:** Phase 0 draft for review (rev 10: Phases 1–6 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
+**Status:** Phase 0 draft for review (rev 11: Phases 1–7 delivered; see §7 "Delivered" notes for deviations) · **Date:** 2026-11-16 · **Launch market:** Dallas–Fort Worth (DFW)
 
 Smart Grocery Saver helps budget-conscious families cut grocery spend by **10–25%**. It compares prices across
 **Walmart, Costco, Sam's Club, Target, Kroger, H-E-B, Aldi, Tom Thumb, Sprouts and Trader Joe's**, and decides whether one store or a multi-store run
@@ -343,7 +343,7 @@ Text format: one item per line, with leading quantity and unit parsed ("2 lb gro
 ### Optimizer
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/lists/:id/optimize` | 🔒 body `{maxStores: 1..3, origin?: {lat,lng}, mpg?, fuelCentsPerGal?, timeValueCentsPerHour?, minutesPerStop?}` → `{single: Plan, multi: Plan[], recommendation}`. Each Plan: stores, ordered route, per-item assignment, itemsCents, distanceMiles, fuelCents, timeCents, totalCents, savingsVsBaselineCents, missing[] |
+| POST | `/lists/:id/optimize` | 🔒 read-only (POST for the options body). body `{maxStores: 1..3 = 3, origin?: {lat,lng}, mpg?, fuelCentsPerGal?, timeValueCentsPerHour? = 0, minutesPerStop? = 10}`; `settings.matchesTrip` is false when origin/mpg/fuel are overridden → `{single: Plan, multi: Plan[], recommendation}`. Each Plan: stores, ordered route, per-item assignment, itemsCents, distanceMiles, fuelCents, timeCents, totalCents, savingsVsBaselineCents, missing[] |
 
 **Optimizer algorithm (exact):** E = eligible chains, |E| ≤ 10, using each chain's nearest or preferred location.
 1. For every subset S ⊆ E with |S| ≤ maxStores (≤ 175 subsets for maxStores = 3: 10 + 45 + 120), assign each item to its cheapest line in S. With S fixed, items are independent, so this step is exact.
@@ -685,6 +685,27 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 2. Recommendation threshold boundary tests.
 3. Performance: 100-item list, 10 stores, maxStores 3 runs in under 500 ms p95.
 4. Playwright: optimize → choose the multi-store plan → "I shopped this" → dashboard total increases by the plan's savings.
+
+**Delivered (2026-11-17): `pnpm verify` green.** Notes and deviations:
+- **Optimizer** (`packages/core/src/optimizer/optimize.ts`), exactly the §5 algorithm:
+  - Every subset of the routable eligible stores with up to `maxStores` stores (175 for 10 stores and 3 stops). Each item goes to its cheapest line in the subset; ties go to the lower store id.
+  - A subset whose cheapest assignment leaves one of its stores unused is the same plan as the smaller subset, so it is skipped (with the triangle inequality, an extra stop never shortens the route).
+  - Route: brute-force round trip (`bestRoute`, shared with trips). Total = groceries + fuel + time.
+  - Ranking: fewer missing items, then lower total, then fewer stores. `single` is the best one-store plan; `multi` holds the best 3 plans with 2+ stores.
+  - **Recommendation (Q-4):** a multi-store plan is recommended if it covers more items, or covers the same items and saves at least max($3, 3% of the single-store total) after fuel and time. Exactly the threshold counts.
+  - **Time cost** is off by default; when on, it counts minutes per stop plus driving at 30 mph (new assumption **A-18**). It affects ranking only.
+  - Measured: about 2 ms median for 100 items × 10 stores × 3 stops (p95 12 ms) against the 500 ms budget. The API test, 20 runs end to end including the database, also stays under 500 ms p95.
+- **Plans and trips agree by construction:**
+  - `savingsVsBaselineCents` = baseline − (groceries + fuel), which is exactly what logging the plan records.
+  - Plans and trips share `tripSettings` (home, car, each store's preferred-or-nearest stop) and the same route and fuel code.
+  - An API test logs both the single and the best multi plan and checks the trip's groceries, fuel, distance, baseline, savings and route equal the plan's.
+- **Not in the plan:** stores without a mapped location (none in DFW mock data). Overrides for origin, mpg or fuel are accepted for "what if" runs and flagged with `settings.matchesTrip = false`; the S8 screen doesn't send them (car and fuel are edited in Settings).
+- **S8 "Plan your trip"** (`/lists/:id/plan`, linked from Compare):
+  - Stop limit (1 / up to 2 / up to 3), "Count my time" ($/hr and minutes per stop, remembered on the device).
+  - The verdict in words, the plans as radio cards with the recommended one pre-selected, the route with a per-store shopping list, and "I shopped this" with a date.
+- **Performance and cleanup:**
+  - The product, dashboard, plan, trips and import screens now load on demand. The first download shrank from 950 kB to 517 kB (gzipped 275 → 154 kB); the chart library (355 kB) loads only with a chart.
+  - Fixed: on Compare, a long store name ("Sprouts Farmers Market") wrapped its total onto a misaligned line.
 
 ---
 

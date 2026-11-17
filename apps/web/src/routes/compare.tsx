@@ -86,15 +86,15 @@ function Summary({
           return (
             <li
               key={t.storeId}
-              className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2"
+              className="flex items-start justify-between gap-3 py-2"
               data-store={name(t.storeId)}
             >
-              <span className="flex flex-wrap items-center gap-2">
+              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                 <span className="font-semibold">{name(t.storeId)}</span>
                 {isCheapest ? <Star /> : null}
                 {isBaseline ? <Badge>usual store</Badge> : null}
               </span>
-              <span className="text-right">
+              <span className="shrink-0 text-right">
                 <span className="block font-semibold tabular-nums">
                   {formatMoney(t.totalCents)}
                 </span>

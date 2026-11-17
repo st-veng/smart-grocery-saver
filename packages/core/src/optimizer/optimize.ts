@@ -13,7 +13,7 @@ import { roundHalfEven } from '../money.js';
 import type { CompareResult } from '../pricing/compare.js';
 import { bestRoute, fuelCostCents } from '../trips/plan.js';
 
-/** Average driving speed for the optional time cost (SPEC A-10). */
+/** Average driving speed for the optional time cost (SPEC A-18). */
 export const DRIVING_MPH = 30;
 export const DEFAULT_MINUTES_PER_STOP = 10;
 /** Q-4: an extra stop is recommended only if it saves at least max($3, 3%) after fuel and time. */
