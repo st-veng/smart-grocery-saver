@@ -21,7 +21,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const compareArea = /^\/lists\/[^/]+\/compare/.test(pathname);
+  const compareArea = /^\/lists\/[^/]+\/(compare|plan)/.test(pathname);
   const dealsArea = /^\/(products|notifications)(\/|$)/.test(pathname);
   const dashboardArea = /^\/trips(\/|$)/.test(pathname);
   /** Sub-pages light up their tab (e.g. a list page → Lists, a product page → Deals). */

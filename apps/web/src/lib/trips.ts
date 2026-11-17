@@ -1,4 +1,6 @@
 import {
+  OptimizeResponse,
+  type OptimizeRequest,
   DashboardBreakdown,
   DashboardSeries,
   DashboardSummary,
@@ -109,5 +111,15 @@ export function useDeleteTrip() {
       void qc.invalidateQueries({ queryKey: tripsKey });
       void qc.invalidateQueries({ queryKey: dashboardKey });
     },
+  });
+}
+
+/** The optimizer is a POST (it takes options) but changes nothing, so it is cached like a query. */
+export function useOptimize(listId: string, body: OptimizeRequest) {
+  return useQuery({
+    queryKey: ['optimize', listId, body],
+    queryFn: ({ signal }) =>
+      api('POST', `/lists/${listId}/optimize`, OptimizeResponse, body, { signal }),
+    placeholderData: keepPreviousData,
   });
 }

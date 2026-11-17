@@ -313,6 +313,9 @@ export function CompareListPage() {
         ) : null}
       </fieldset>
       <Summary data={data} name={name} />
+      <Link to={`/lists/${data.listId}/plan`} className={`${primaryButton} gap-2`}>
+        Plan my trip: one store or two? <span aria-hidden="true">→</span>
+      </Link>
       <LogTrip data={data} name={name} />
       <section aria-labelledby="items-h" className="space-y-3">
         <h2 id="items-h" className="text-lg font-semibold">

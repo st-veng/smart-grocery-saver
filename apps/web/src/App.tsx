@@ -10,6 +10,7 @@ import { DashboardPage } from './routes/dashboard';
 import { DealsPage } from './routes/deals';
 import { ImportPage } from './routes/import';
 import { NotificationsPage } from './routes/notifications';
+import { PlanPage } from './routes/plan';
 import { ProductPage } from './routes/product';
 import { ListDetailPage } from './routes/list-detail';
 import { ListsPage, TemplatesPage } from './routes/lists-pages';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
       { path: 'templates', element: <TemplatesPage /> },
       { path: 'compare', element: <ComparePickerPage /> },
       { path: 'lists/:id/compare', element: <CompareListPage /> },
+      { path: 'lists/:id/plan', element: <PlanPage /> },
       { path: 'products/:id', element: <ProductPage /> },
       { path: 'deals', element: <DealsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
