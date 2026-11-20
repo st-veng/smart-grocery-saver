@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"pnpm --filter @sgs/api dev\" \"pnpm --filter @sgs/web dev\"",
-    "db:up": "bash scripts/db-up.sh",
-    "db:down": "bash scripts/db-down.sh",
+    "db:up": "node scripts/db.mjs up",
+    "db:down": "node scripts/db.mjs down",
     "db:generate": "pnpm --filter @sgs/db generate",
     "db:migrate": "pnpm --filter @sgs/db migrate",
     "db:seed": "pnpm --filter @sgs/pricing seed && pnpm --filter @sgs/api seed:demo-trips",
@@ -22,7 +22,7 @@
     "test:unit": "pnpm -r --filter=!@sgs/e2e test:unit",
     "test:api": "pnpm --filter @sgs/api test",
     "test:e2e": "pnpm --filter @sgs/e2e test",
-    "verify": "bash scripts/verify.sh",
+    "verify": "node scripts/verify.mjs",
     "sim:advance": "pnpm --filter @sgs/pricing sim:advance"
   },
   "devDependencies": {

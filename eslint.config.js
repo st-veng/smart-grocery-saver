@@ -44,7 +44,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/cli/**'],
+    files: ['**/cli/**', 'scripts/**'],
     rules: { 'no-console': 'off' },
   },
   {
@@ -53,6 +53,6 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.browser } },
     rules: { ...reactHooks.configs.recommended.rules, ...jsxA11y.flatConfigs.recommended.rules },
   },
-  { files: ['**/*.js'], ...tseslint.configs.disableTypeChecked },
+  { files: ['**/*.{js,mjs}'], ...tseslint.configs.disableTypeChecked },
   prettier,
 );

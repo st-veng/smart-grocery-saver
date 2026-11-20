@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Start Postgres for local dev on port 5433.
-# Prefers docker compose; falls back to a local PostgreSQL install (pg_ctl) when no Docker daemon is available.
+# Fallback for `pnpm db:up` (scripts/db.mjs) when Docker is not running, on Linux/macOS:
+# start a local PostgreSQL install (pg_ctl) on port 5433.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

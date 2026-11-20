@@ -55,7 +55,7 @@ Re-check these when upgrading.
 │                            ingest/ (normalize → match → upsert → price periods), seed/
 ├── e2e/                     Playwright specs + fixtures
 ├── docs/schema.sql          reference DDL (SPEC Appendix A)
-├── scripts/verify.sh        the gate: typecheck → lint → test → e2e
+├── scripts/verify.mjs       the gate: typecheck → lint → test → e2e (db.mjs: db:up/db:down, cross-platform)
 ├── docker-compose.yml
 └── .github/workflows/ci.yml
 ```

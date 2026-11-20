@@ -51,6 +51,21 @@ settings), copy `.env.example` to `.env` and edit it.
 
 **Next time:** `pnpm db:up`, then `pnpm dev`. Stop the app with Ctrl+C and Postgres with `pnpm db:down`.
 
+### On Windows
+
+All commands work in PowerShell or Command Prompt. A few Windows-specific steps:
+
+- **Install Git** from https://git-scm.com/download/win and **Docker Desktop** from
+  https://www.docker.com/products/docker-desktop/. Start Docker Desktop and wait until it says it's running before
+  `pnpm db:up`.
+- **Open a new terminal after installing anything.** Windows only finds newly installed commands (`git`, `node`,
+  `pnpm`, `docker`) in a fresh window.
+- **Node.js 25 or newer doesn't include Corepack.** If `corepack` is "not recognized", run `npm install -g corepack`
+  and then `corepack enable`, or install pnpm directly with `npm install -g pnpm@10.28.0`. Node.js 22 or 24 LTS
+  from https://nodejs.org includes Corepack.
+- **"running scripts is disabled on this system"** in PowerShell: run
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and answer **Y**, or use Command Prompt instead.
+
 ### Things to try
 
 1. **Lists → Family week → Compare prices** to see each store's total and the cheapest store.
@@ -65,7 +80,8 @@ settings), copy `.env.example` to `.env` and edit it.
 
 - **Port 5433 or 5173 already in use:** stop the other program, or set `DATABASE_URL` / ports in `.env`.
 - **"Too many attempts" when signing in:** sign-in is rate-limited. Restart `pnpm dev` to reset it.
-- **No Docker:** `pnpm db:up` falls back to a local PostgreSQL installation if it finds one.
+- **`pnpm db:up` says Docker isn't running:** start Docker Desktop and wait for it, then try again.
+- **No Docker (Linux or macOS):** `pnpm db:up` falls back to a local PostgreSQL 16+ installation if it finds one.
 
 ## Commands
 

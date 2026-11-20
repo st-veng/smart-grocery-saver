@@ -433,7 +433,7 @@ Empty/error/loading states are required for every screen (skeletons, retry, offl
 - `MockPriceProvider` and the ingestion pipeline (normalize → match → upsert → periods).
 - Seed: 10 stores, ~40 DFW mock locations, ~14 categories, **≥150 products**, items at all 10 stores, **12 months** of periods, Tom Thumb and Kroger member-only prices.
 - API `/health` and `/health/ready`. The web app shell renders and shows API health. Dark-mode toggle works.
-- `scripts/verify.sh` and a GitHub Actions workflow that runs it with a Postgres service.
+- `scripts/verify.mjs` (Node, so it also runs on Windows; was `verify.sh`) and a GitHub Actions workflow that runs it with a Postgres service.
 
 **Delivered (2026-11-16): `pnpm verify` green — 197 unit/API/DB tests + 8 e2e (mobile + desktop).** Deviations from the plan above:
 - **New package `packages/pricing`.** It holds the provider contract, mock provider, catalog data, ingestion and seed. The seed must use the ingestion pipeline, and `db` must not depend on `api`, so this code couldn't live in `apps/api/providers` or `packages/db/seed` as originally planned. Dependency direction: `api → pricing → db → core`.
